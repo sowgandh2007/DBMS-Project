@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RackMaster | Retail Inventory & Rack Management System</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            },
+            luxury: {
+              navy: '#0f172a',
+              slate: '#334155',
+              gold: '#d97706',
+              emerald: '#059669',
+              teal: '#0d9488',
+              rose: '#e11d48'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .premium-card {
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .premium-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: 0 10px 25px -4px rgba(99, 102, 241, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      border-radius: 0.75rem;
+      font-size: 0.8125rem;
+      transition: all 0.15s ease-in-out;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased select-none bg-slate-50 text-slate-900">
+
+  <!-- ================= SIDEBAR NAVIGATION (Premium Light & Navy) ================= -->
+  <aside class="w-full md:w-64 bg-white border-r border-slate-200/90 flex flex-col justify-between p-5 shrink-0 z-20 shadow-sm">
+    <div class="flex flex-col gap-6">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+        <div class="w-10 h-10 bg-gradient-to-tr from-brand-700 to-brand-500 text-white rounded-xl flex items-center justify-center shadow-md shadow-brand-500/25">
+          <i data-lucide="package" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <span class="text-base font-black tracking-tight text-slate-900 block leading-tight">RackMaster</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-brand-600">Retail Inventory DBMS</span>
+        </div>
+      </div>
+
+      <!-- Navigation links -->
+      <nav class="flex flex-col gap-1 text-xs font-semibold" id="sidebar-nav">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1">Functional Modules</span>
+        
+        <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left bg-brand-600 text-white shadow-sm shadow-brand-600/30">
+          <div class="flex items-center gap-3"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard Overview</span></div>
+        </button>
+
+        <button onclick="switchView('inventory')" id="nav-inventory" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="boxes" class="w-4 h-4 text-slate-400"></i><span>Store Inventory</span></div>
+        </button>
+
+        <button onclick="switchView('products')" id="nav-products" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="search" class="w-4 h-4 text-slate-400"></i><span>Catalog & Search (CRUD)</span></div>
+        </button>
+
+        <button onclick="switchView('locations')" id="nav-locations" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i><span>Rack Location Finder</span></div>
+        </button>
+
+        <button onclick="switchView('racks')" id="nav-racks" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="layers" class="w-4 h-4 text-slate-400"></i><span>Racks & Shelves</span></div>
+        </button>
+
+        <button onclick="switchView('low-stock')" id="nav-low-stock" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i><span>Low-Stock Alerts</span></div>
+          <span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200" id="sidebar-alert-badge">1</span>
+        </button>
+
+        <button onclick="switchView('suppliers')" id="nav-suppliers" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="truck" class="w-4 h-4 text-slate-400"></i><span>Suppliers Directory</span></div>
+        </button>
+
+        <button onclick="switchView('purchase-orders')" id="nav-purchase-orders" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="clipboard-list" class="w-4 h-4 text-slate-400"></i><span>Purchase Orders</span></div>
+        </button>
+
+        <button onclick="switchView('sales')" id="nav-sales" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="receipt" class="w-4 h-4 text-slate-400"></i><span>Sales & Billing POS</span></div>
+        </button>
+
+        <button onclick="switchView('reports')" id="nav-reports" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="bar-chart-3" class="w-4 h-4 text-slate-400"></i><span>Reports & Analytics</span></div>
+        </button>
+
+        <button onclick="switchView('sql-hub')" id="nav-sql-hub" class="nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80">
+          <div class="flex items-center gap-3"><i data-lucide="database" class="w-4 h-4 text-brand-600"></i><span>SQL Query Hub</span></div>
+          <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">11 SQL</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Sidebar footer status indicator -->
+    <div class="border-t border-slate-100 pt-4 mt-6 flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Database Connection</span>
+        <button onclick="checkBackendHealth(true)" class="text-[10px] text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
+          <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i> Sync
+        </button>
+      </div>
+      <div id="sidebar-db-status" class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col gap-1">
+        <span class="inline-flex items-center gap-1.5 text-xs text-amber-700 font-bold" id="db-status-badge">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Connecting to API...
+        </span>
+        <span class="text-[10px] text-slate-500 font-medium" id="db-status-sub">Checking Flask on port 5000</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN WORKSPACE ================= -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+    <!-- Top Header -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10 shadow-sm">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 id="header-title" class="text-xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
+          <button onclick="openInspector(currentViewKey)" class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200/80 text-[11px] font-bold transition-all">
+            <i data-lucide="code-2" class="w-3 h-3 text-brand-600"></i>
+            <span id="header-sql-pill">04_stock_value_by_category.sql</span>
+          </button>
+        </div>
+        <p id="header-subtitle" class="text-xs text-slate-500 mt-0.5">Real-time inventory valuation, rack space utilization, and profit performance.</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Live Connection Pill -->
+        <div id="live-connection-pill" class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="live-indicator-dot"></span>
+          <span class="text-slate-700 font-semibold text-xs" id="live-indicator-text">Detecting API...</span>
+        </div>
+
+        <button onclick="openInspector(currentViewKey)" class="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-bold text-xs py-2 px-3.5 rounded-xl border border-slate-300 transition-all shadow-sm">
+          <i data-lucide="database" class="w-3.5 h-3.5 text-brand-600"></i>
+          <span>SQL Query Spec</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Workspace -->
+    <main class="flex-1 p-5 md:p-8 max-w-7xl w-full mx-auto flex flex-col gap-8">
+      
+      <!-- ================= 1. DASHBOARD VIEW ================= -->
+      <section id="view-dashboard" class="view-content flex flex-col gap-8 animate-fade-in">
+        <!-- Top Actions -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Executive Management Overview</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Aggregates live database metrics from Supabase PostgreSQL via view <code class="text-brand-700 font-mono font-bold">product_stock</code>.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="switchView('sales')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3.5 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+              <i data-lucide="receipt" class="w-3.5 h-3.5 text-brand-600"></i> POS Checkout
+            </button>
+            <button onclick="openProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2 px-3.5 rounded-xl flex items-center gap-1.5 shadow-md shadow-brand-500/20 transition-all">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Product
+            </button>
+          </div>
+        </div>
+
+        <!-- SQL Callout Banner (Premium Soft Indigo) -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-brand-50/80 via-white to-slate-50 border border-brand-200/70 flex items-center justify-between gap-4 shadow-sm">
+          <div class="flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-brand-600/30">
+              <i data-lucide="database" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-slate-900 block">PostgreSQL Database Engine Connected • Multi-Table Integration</span>
+              <span class="text-[11px] text-slate-500">
+                Calculates valuation and aggregate statistics via view <code class="text-brand-700 font-semibold font-mono">product_stock</code> and <code class="text-slate-700 font-mono">backend/queries/04_stock_value_by_category.sql</code>.
+              </span>
+            </div>
+          </div>
+          <button onclick="openInspector('04_stock_value_by_category.sql')" class="text-xs font-bold text-brand-600 hover:text-brand-700 underline flex items-center gap-1 shrink-0">
+            <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
+            <span>View SQL</span>
+          </button>
+        </div>
+
+        <!-- Stats Counter Grid (Premium Light Cards) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="premium-card rounded-2xl p-5 flex flex-col justify-between border-t-4 border-t-brand-600">
+            <div class="flex items-center justify-between text-slate-500 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Inventory Valuation</span>
+              <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div>
+              <div class="text-2xl font-black text-slate-900 tracking-tight" id="dash-val">₹48,250.00</div>
+              <span class="text-xs text-slate-500 font-semibold" id="dash-units">180 units in stock</span>
+            </div>
+          </div>
+
+          <div class="premium-card rounded-2xl p-5 flex flex-col justify-between border-t-4 border-t-emerald-600">
+            <div class="flex items-center justify-between text-slate-500 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Potential Revenue</span>
+              <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div>
+              <div class="text-2xl font-black text-slate-900 tracking-tight" id="dash-rev">₹97,500.00</div>
+              <span class="text-xs text-slate-500 font-medium">Gross retail sales if fully sold</span>
+            </div>
+          </div>
+
+          <div class="premium-card rounded-2xl p-5 flex flex-col justify-between border-t-4 border-t-teal-600">
+            <div class="flex items-center justify-between text-slate-500 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Est. Gross Profit</span>
+              <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div>
+              <div class="text-2xl font-black text-teal-700 tracking-tight" id="dash-profit">₹49,250.00</div>
+              <span class="text-xs text-slate-500 font-medium">Net markup across catalog</span>
+            </div>
+          </div>
+
+          <div class="premium-card rounded-2xl p-5 flex flex-col justify-between border-t-4 border-t-amber-500">
+            <div class="flex items-center justify-between text-slate-500 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Avg Profit Margin</span>
+              <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i data-lucide="percent" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div>
+              <div class="text-2xl font-black text-amber-700 tracking-tight" id="dash-margin">50.5%</div>
+              <span class="text-xs text-slate-500 font-medium">Average markup on cost</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Stats Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div class="premium-card rounded-2xl p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Catalog SKUs</span>
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <i data-lucide="boxes" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span class="text-2xl font-black text-slate-900" id="dash-skus">6</span>
+                <span class="text-xs text-slate-500 block">Active database products</span>
+              </div>
+              <button onclick="switchView('products')" class="text-xs font-bold text-brand-600 hover:text-brand-700">View Catalog →</button>
+            </div>
+          </div>
+
+          <div class="premium-card rounded-2xl p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Racks Occupancy</span>
+              <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl font-black text-slate-900">3 Racks</span>
+                <span class="text-xs font-mono font-bold text-brand-600">180 / 400 units</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-brand-600 h-2 rounded-full" style="width: 45%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="premium-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer" onclick="switchView('low-stock')">
+            <div class="flex items-center justify-between text-slate-500 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600">Critical Stock Deficits</span>
+              <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span class="text-2xl font-black text-amber-600" id="dash-deficit-count">1 Item</span>
+                <span class="text-xs text-slate-500 block">Shortfall &lt; reorder level</span>
+              </div>
+              <span class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Reorder Action →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profit Margins and Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-7 premium-card rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
+                <span class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Margin Products</span>
+              </div>
+              <span class="text-xs text-slate-400">Highest gross markup yield</span>
+            </div>
+            <div class="flex flex-col gap-3.5" id="margin-chart-container"></div>
+          </div>
+
+          <div class="lg:col-span-5 premium-card rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <i data-lucide="clock" class="w-4 h-4 text-brand-600"></i>
+                <span class="text-xs font-bold text-slate-900 uppercase tracking-wider">Live Inventory Activity</span>
+              </div>
+              <span class="text-xs text-slate-400">Audit ledger</span>
+            </div>
+            <div class="flex flex-col gap-2.5" id="activity-list-container"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. STORE INVENTORY VIEW ================= -->
+      <section id="view-inventory" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Store Inventory Ledger</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Physical unit counts, cost basis, and current status calculated via PostgreSQL view <code class="text-brand-700 font-mono font-bold">product_stock</code>.</p>
+          </div>
+          <button onclick="openInspector('04_stock_value_by_category.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 04_stock_value_by_category.sql</span>
+          </button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="premium-card rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch justify-between">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+            <input type="text" id="inventory-search" oninput="renderInventory()" placeholder="Search by SKU, product name..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 focus:outline-none focus:border-brand-600 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400">
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="inventory-cat-filter" onchange="renderInventory()" class="form-input text-slate-800 bg-white cursor-pointer w-auto font-semibold">
+              <option value="all">All Categories</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Stationery">Stationery</option>
+              <option value="Furniture">Furniture</option>
+            </select>
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button onclick="setInvStatus('ALL')" id="inv-st-ALL" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-sm">All</button>
+              <button onclick="setInvStatus('IN_STOCK')" id="inv-st-IN_STOCK" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">In Stock</button>
+              <button onclick="setInvStatus('LOW_STOCK')" id="inv-st-LOW_STOCK" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Low Stock</button>
+              <button onclick="setInvStatus('OUT_OF_STOCK')" id="inv-st-OUT_OF_STOCK" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Out of Stock</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="premium-card rounded-2xl overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Inventory Ledger (Calculated via product_stock)</span>
+            <span class="text-xs text-slate-500 font-semibold" id="inventory-count-text">6 SKUs Found</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                  <th class="p-4">SKU & Product</th>
+                  <th class="p-4">Category</th>
+                  <th class="p-4 text-right">Cost Price</th>
+                  <th class="p-4 text-right">Selling Price</th>
+                  <th class="p-4 text-center">Live Units</th>
+                  <th class="p-4 text-right">Inventory Value</th>
+                  <th class="p-4 text-center">Status</th>
+                  <th class="p-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. PRODUCT CATALOG (FULL INTERACTIVE CRUD) ================= -->
+      <section id="view-products" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Product Catalog Management</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Demonstrates <strong>INSERT, UPDATE, DELETE</strong> and parameterized searching via <code class="text-brand-700 font-mono font-bold">01_product_search.sql</code>.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openInspector('01_product_search.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+              <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+              <span>SQL: 01_product_search.sql</span>
+            </button>
+            <button onclick="openProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2 px-3.5 rounded-xl flex items-center gap-1.5 shadow-md shadow-brand-500/20 transition-all">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add New Product
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Bar & Category Chips -->
+        <div class="premium-card rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch justify-between">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+            <input type="text" id="catalog-search" oninput="renderCatalog()" placeholder="Search product name or SKU..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 focus:outline-none focus:border-brand-600 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400">
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button onclick="filterCatalogCategory('all')" id="cat-chip-all" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-600 text-white shadow-sm">All</button>
+              <button onclick="filterCatalogCategory('Electronics')" id="cat-chip-Electronics" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">Electronics</button>
+              <button onclick="filterCatalogCategory('Stationery')" id="cat-chip-Stationery" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">Stationery</button>
+              <button onclick="filterCatalogCategory('Furniture')" id="cat-chip-Furniture" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">Furniture</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Catalog Grid with Edit and Delete options -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="catalog-grid-container"></div>
+      </section>
+
+      <!-- ================= 4. RACK LOCATION FINDER VIEW ================= -->
+      <section id="view-locations" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Rack Location Finder</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Physical aisle, rack, and shelf coordinates powered by <code class="text-brand-700 font-mono font-bold">03_current_stock_location.sql</code> (demonstrating subquery with EXISTS).</p>
+          </div>
+          <button onclick="openInspector('03_current_stock_location.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 03_current_stock_location.sql</span>
+          </button>
+        </div>
+
+        <div class="premium-card rounded-2xl p-4">
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+            <input type="text" id="location-search" oninput="renderLocations()" placeholder="Find item by name, SKU, or rack code (e.g. RACK-A1)..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 focus:outline-none focus:border-brand-600 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400">
+          </div>
+        </div>
+
+        <div class="premium-card rounded-2xl overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Product Coordinates (product_location view)</span>
+            <span class="text-xs text-slate-500 font-semibold" id="locations-count-text">5 Locations Mapped</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                  <th class="p-4">SKU & Item</th>
+                  <th class="p-4">Aisle</th>
+                  <th class="p-4">Rack Code</th>
+                  <th class="p-4 text-center">Shelf #</th>
+                  <th class="p-4 text-center">Shelf Stock</th>
+                  <th class="p-4">Stock Status</th>
+                  <th class="p-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="locations-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. RACKS & SHELVES VIEW ================= -->
+      <section id="view-racks" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Racks & Shelves Layout</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Physical warehouse storage zones, capacity distribution, and shelf visual occupancies.</p>
+          </div>
+          <button onclick="openInspector('03_current_stock_location.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 03_current_stock_location.sql</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="racks-grid-container"></div>
+      </section>
+
+      <!-- ================= 6. LOW-STOCK ALERTS VIEW ================= -->
+      <section id="view-low-stock" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Low-Stock Alerts & Triggers</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Threshold shortfall monitor calculated by <code class="text-brand-700 font-mono font-bold">02_low_stock.sql</code> (reorder_level - stock_quantity).</p>
+          </div>
+          <button onclick="openInspector('02_low_stock.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 02_low_stock.sql</span>
+          </button>
+        </div>
+
+        <!-- Alert Summary Banner (Warm Amber Luxury) -->
+        <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-4 shadow-sm">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-600/30">
+              <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="text-sm font-bold text-amber-950 block" id="low-stock-banner-title">1 Item Triggered Low Stock Threshold</span>
+              <span class="text-xs text-amber-800 font-medium">Stock level is at or below defined reorder shortfall threshold.</span>
+            </div>
+          </div>
+          <button onclick="switchView('purchase-orders')" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all shrink-0">
+            Open Purchase Orders
+          </button>
+        </div>
+
+        <div class="premium-card rounded-2xl overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Deficit Ledger (reorder_level - stock_quantity)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                  <th class="p-4">SKU & Item</th>
+                  <th class="p-4 text-center">Live Stock</th>
+                  <th class="p-4 text-center">Reorder Threshold</th>
+                  <th class="p-4 text-center">Shortfall Units</th>
+                  <th class="p-4 text-right">Restock Action</th>
+                </tr>
+              </thead>
+              <tbody id="alerts-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 7. SUPPLIERS DIRECTORY VIEW ================= -->
+      <section id="view-suppliers" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Suppliers & Vendor Directory</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Supplier relationships and product catalog mappings from <code class="text-brand-700 font-mono font-bold">07_supplier_products.sql</code>.</p>
+          </div>
+          <button onclick="openInspector('07_supplier_products.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 07_supplier_products.sql</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="suppliers-grid-container"></div>
+      </section>
+
+      <!-- ================= 8. PURCHASE ORDERS VIEW ================= -->
+      <section id="view-purchase-orders" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Purchase Orders & Receiving</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Procurement tracking powered by <code class="text-brand-700 font-mono font-bold">05_purchase_order_summary.sql</code>. (Only Received status contributes to inventory).</p>
+          </div>
+          <button onclick="openInspector('05_purchase_order_summary.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 05_purchase_order_summary.sql</span>
+          </button>
+        </div>
+
+        <div class="premium-card rounded-2xl overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Purchase Order History (05_purchase_order_summary.sql)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                  <th class="p-4">PO #</th>
+                  <th class="p-4">Supplier</th>
+                  <th class="p-4">Order Date</th>
+                  <th class="p-4">Received Date</th>
+                  <th class="p-4 text-right">Total Cost</th>
+                  <th class="p-4 text-center">Status</th>
+                  <th class="p-4 text-right">Inspect</th>
+                </tr>
+              </thead>
+              <tbody id="pos-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 9. SALES & POS TERMINAL VIEW ================= -->
+      <section id="view-sales" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Sales Counter & Billing POS</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Record customer sales, update inventory counts, and audit performance via <code class="text-brand-700 font-mono font-bold">06_sales_summary.sql</code>.</p>
+          </div>
+          <button onclick="openInspector('06_sales_summary.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 06_sales_summary.sql</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- POS Catalog (Left 7 cols) -->
+          <div class="lg:col-span-7 flex flex-col gap-4">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+              <input type="text" id="pos-product-search" oninput="renderPosCatalog()" placeholder="Scan SKU or type item name..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 focus:outline-none focus:border-brand-600 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[480px] overflow-y-auto" id="pos-catalog-grid"></div>
+          </div>
+
+          <!-- POS Cart & Checkout (Right 5 cols) -->
+          <div class="lg:col-span-5 flex flex-col gap-4">
+            <div class="premium-card rounded-2xl p-5 flex flex-col justify-between min-h-[480px]">
+              <div class="flex flex-col gap-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="shopping-cart" class="w-4 h-4 text-brand-600"></i>
+                    <span class="text-xs font-bold text-slate-900 uppercase tracking-wider">Current Cart</span>
+                  </div>
+                  <span class="text-xs text-brand-600 font-bold" id="cart-item-count">0 items</span>
+                </div>
+
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Customer / Member</label>
+                  <input type="text" id="pos-customer" placeholder="Walk-in Customer" class="form-input text-xs">
+                </div>
+
+                <div class="flex flex-col gap-2 max-h-[180px] overflow-y-auto" id="pos-cart-items">
+                  <p class="text-xs text-slate-400 italic py-8 text-center">Cart is empty. Click items from catalog to add.</p>
+                </div>
+              </div>
+
+              <!-- Cart Summary & Checkout -->
+              <div class="pt-4 border-t border-slate-100 flex flex-col gap-2.5">
+                <div class="flex justify-between text-xs text-slate-500">
+                  <span>Subtotal</span>
+                  <span class="font-mono text-slate-900 font-bold" id="cart-subtotal">₹0.00</span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500">
+                  <span>GST (5%)</span>
+                  <span class="font-mono text-slate-700" id="cart-tax">₹0.00</span>
+                </div>
+                <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100">
+                  <span>Total Amount</span>
+                  <span class="font-mono text-brand-600 font-black text-base" id="cart-total">₹0.00</span>
+                </div>
+                <button onclick="handleCheckout()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 mt-1">
+                  <i data-lucide="check-circle-2" class="w-4 h-4"></i> Complete Sale & Print Receipt
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales Audit Log -->
+        <div class="premium-card rounded-2xl overflow-hidden mt-2">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Sales Audit Ledger (sales_order)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                  <th class="p-4">Receipt #</th>
+                  <th class="p-4">Customer</th>
+                  <th class="p-4">Date</th>
+                  <th class="p-4 text-center">Payment</th>
+                  <th class="p-4 text-right">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody id="sales-log-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 10. REPORTS VIEW ================= -->
+      <section id="view-reports" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Reports & Business Analytics</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Aggregated reports executed via <code class="text-brand-700 font-mono font-bold">04_stock_value_by_category.sql</code> (HAVING & AGGREGATES) and <code class="text-brand-700 font-mono font-bold">06_sales_summary.sql</code>.</p>
+          </div>
+          <button onclick="openInspector('04_stock_value_by_category.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>SQL: 04_stock_value_by_category.sql</span>
+          </button>
+        </div>
+
+        <div class="premium-card rounded-2xl overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Stock Valuation by Category (HAVING, AVG, MIN, MAX)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                  <th class="p-4">Category Name</th>
+                  <th class="p-4 text-center">Catalog SKUs</th>
+                  <th class="p-4 text-center">Total Units</th>
+                  <th class="p-4 text-right">Avg Price</th>
+                  <th class="p-4 text-right">Min Price</th>
+                  <th class="p-4 text-right">Max Price</th>
+                  <th class="p-4 text-right">Total Stock Value</th>
+                </tr>
+              </thead>
+              <tbody id="reports-valuation-body" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sales turnover by product -->
+        <div class="premium-card rounded-2xl overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Sales Turnover by Product (06_sales_summary.sql - Statement B)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                  <th class="p-4">SKU & Product Name</th>
+                  <th class="p-4 text-center">Units Sold</th>
+                  <th class="p-4 text-right">Total Gross Sales</th>
+                </tr>
+              </thead>
+              <tbody id="reports-sales-product-body" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 11. SQL QUERY HUB VIEW ================= -->
+      <section id="view-sql-hub" class="view-content hidden flex flex-col gap-6 animate-fade-in">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Database & SQL Query Hub</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Explore and test all 11 SQL query files demonstrating the complete DBMS Course Project syllabus requirements.</p>
+          </div>
+          <span class="px-3 py-1 bg-brand-50 text-brand-700 font-bold text-xs rounded-xl border border-brand-200">
+            Complete DBS Syllabus Matched
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="sql-files-grid"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= SQL INSPECTOR & LIVE QUERY RUNNER MODAL ================= -->
+  <div id="inspector-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-3xl w-full border border-slate-200 p-6 flex flex-col gap-4 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+            <i data-lucide="code-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900" id="modal-sql-title">SQL Query Specification</h3>
+            <span class="text-[11px] text-slate-500 font-mono" id="modal-sql-file">backend/queries/01_product_search.sql</span>
+          </div>
+        </div>
+        <button onclick="closeInspector()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">DBMS Concepts Covered</span>
+          <span class="font-semibold text-brand-700" id="modal-sql-concept">SELECT, WHERE, JOIN</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">Python Service Method</span>
+          <span class="font-mono text-slate-700 truncate block" id="modal-sql-service">services/query_service.py</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">Flask API Route</span>
+          <span class="font-mono text-brand-600 truncate block" id="modal-sql-route">GET /api/products</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Parameterized SQL Statement</span>
+          <button onclick="copySqlCode()" class="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
+            <i data-lucide="copy" class="w-3 h-3"></i> Copy Query
+          </button>
+        </div>
+        <pre class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-emerald-400 overflow-x-auto max-h-[220px] whitespace-pre" id="modal-sql-code"></pre>
+      </div>
+
+      <!-- Live Execution Output Area -->
+      <div id="modal-sql-result-area" class="hidden flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live Supabase Execution Result
+          </span>
+          <span class="text-[10px] text-slate-400" id="modal-sql-result-count">0 rows returned</span>
+        </div>
+        <div class="max-h-[160px] overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-mono text-slate-800" id="modal-sql-result-content"></div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+        <button onclick="runCurrentQueryLive()" id="btn-run-live-query" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm transition-all">
+          <i data-lucide="play" class="w-3.5 h-3.5"></i> Test Query on Supabase
+        </button>
+        <button onclick="closeInspector()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+          Close Inspector
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ADD PRODUCT MODAL ================= -->
+  <div id="product-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full border border-slate-200 p-6 flex flex-col gap-4 shadow-2xl animate-fade-in">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+            <i data-lucide="package-plus" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">Add New Product (INSERT)</h3>
+        </div>
+        <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleProductAdd(event)" class="flex flex-col gap-3.5 text-xs">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Product Name</label>
+          <input type="text" id="add-p-name" required placeholder="e.g. Ergonomic Keyboard" class="form-input">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">SKU Code</label>
+            <input type="text" id="add-p-sku" required placeholder="EL107" class="form-input font-mono">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Category</label>
+            <select id="add-p-cat" class="form-input font-semibold text-slate-800">
+              <option value="Electronics">Electronics</option>
+              <option value="Stationery">Stationery</option>
+              <option value="Furniture">Furniture</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Cost Price (₹)</label>
+            <input type="number" step="0.01" id="add-p-cost" required placeholder="500" class="form-input font-mono">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Selling Price (₹)</label>
+            <input type="number" step="0.01" id="add-p-price" required placeholder="899" class="form-input font-mono font-bold text-brand-700">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reorder Level Threshold</label>
+          <input type="number" id="add-p-min" value="10" class="form-input font-mono">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeProductModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-sm">Save to Supabase</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= EDIT PRODUCT MODAL (UPDATE) ================= -->
+  <div id="edit-product-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full border border-slate-200 p-6 flex flex-col gap-4 shadow-2xl animate-fade-in">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-brand-600 flex items-center justify-center">
+            <i data-lucide="edit-3" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Edit Product (UPDATE)</h3>
+            <span class="text-[10px] text-slate-400 font-mono" id="edit-p-id-label">Product #101</span>
+          </div>
+        </div>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleProductUpdate(event)" class="flex flex-col gap-3.5 text-xs">
+        <input type="hidden" id="edit-p-id">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Product Name</label>
+          <input type="text" id="edit-p-name" required class="form-input">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Category</label>
+            <select id="edit-p-cat" class="form-input font-semibold text-slate-800">
+              <option value="Electronics">Electronics</option>
+              <option value="Stationery">Stationery</option>
+              <option value="Furniture">Furniture</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Selling Price (₹)</label>
+            <input type="number" step="0.01" id="edit-p-price" required class="form-input font-mono font-bold text-brand-700">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reorder Level Threshold</label>
+          <input type="number" id="edit-p-min" required class="form-input font-mono">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-sm">Update in Database</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= RECEIPT MODAL ================= -->
+  <div id="receipt-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full border border-slate-200 p-6 flex flex-col gap-4 shadow-2xl animate-fade-in text-xs font-mono">
+      <div class="text-center pb-3 border-b border-dashed border-slate-300">
+        <h4 class="font-bold text-slate-900 text-base">RackMaster Retail POS</h4>
+        <span class="text-[10px] text-slate-500">Central Retail Hub • GSTIN: 27AABCS1429B1Z</span>
+      </div>
+      <div id="receipt-modal-content" class="flex flex-col gap-2"></div>
+      <button onclick="closeReceiptModal()" class="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl mt-2">
+        Done / Print Copy
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= APPLICATION LOGIC & STATE ================= -->
+  <script>
+    const API_BASE_URL = (window.location.origin && window.location.origin.includes(':5000')) 
+      ? `${window.location.origin}/api` 
+      : 'http://localhost:5000/api';
+    let isLiveBackend = false;
+
+    // Real Supabase PostgreSQL database dataset matching actual tables
+    let PRODUCTS = [
+      { product_id: 102, sku: "EL102", product_name: "Keyboard", category: "Electronics", cost_price: 700.00, unit_price: 1200.00, min_stock_level: 10, total_stock: 14, stock_status: "IN_STOCK", rack_code: "R-A1", shelf_number: "S1", aisle: "A", supplier_name: "Tech Supplies Inc." },
+      { product_id: 103, sku: "ST101", product_name: "Notebook", category: "Stationery", cost_price: 50.00, unit_price: 100.00, min_stock_level: 20, total_stock: 70, stock_status: "IN_STOCK", rack_code: "R-B1", shelf_number: "S1", aisle: "B", supplier_name: "Paper World Ltd." },
+      { product_id: 104, sku: "FU101", product_name: "Office Chair", category: "Furniture", cost_price: 2500.00, unit_price: 4500.00, min_stock_level: 5, total_stock: 0, stock_status: "OUT_OF_STOCK", rack_code: "Unassigned", shelf_number: "-", aisle: "-", supplier_name: "Office Mart" },
+      { product_id: 105, sku: "EL103", product_name: "USB Cable", category: "Electronics", cost_price: 150.00, unit_price: 300.00, min_stock_level: 15, total_stock: 10, stock_status: "LOW_STOCK", rack_code: "R-A1", shelf_number: "S2", aisle: "A", supplier_name: "Tech Supplies Inc." },
+      { product_id: 101, sku: "EL101", product_name: "Wireless Mouse", category: "Electronics", cost_price: 450.00, unit_price: 850.00, min_stock_level: 10, total_stock: 22, stock_status: "IN_STOCK", rack_code: "R-A1", shelf_number: "S1", aisle: "A", supplier_name: "Tech Supplies Inc." }
+    ];
+
+    let RACKS = [
+      { rack_id: 1, rack_code: "R-A1", aisle: "Aisle A", zone: "Electronics Wing", current: 46, max: 200, pct: 23.0, cat: "Electronics" },
+      { rack_id: 2, rack_code: "R-B1", aisle: "Aisle B", zone: "Stationery & Office", current: 70, max: 150, pct: 46.7, cat: "Stationery" },
+      { rack_id: 3, rack_code: "R-C1", aisle: "Aisle C", zone: "Furniture Bay", current: 0, max: 50, pct: 0.0, cat: "Furniture" }
+    ];
+
+    let SUPPLIERS = [
+      { id: 1, name: "Tech Supplies Inc.", contact: "John Doe", email: "tech@example.com", phone: "+1-555-0101", skus: 3, orders: 2, spend: "₹55,000", status: "Active" },
+      { id: 2, name: "Paper World Ltd.", contact: "Jane Smith", email: "paper@example.com", phone: "+1-555-0102", skus: 1, orders: 1, spend: "₹5,000", status: "Active" },
+      { id: 3, name: "Office Mart", contact: "Alice Brown", email: "officemart@example.com", phone: "+1-555-0103", skus: 1, orders: 1, spend: "₹0", status: "Active" }
+    ];
+
+    let PURCHASE_ORDERS = [
+      { po_id: 201, supplier_name: "Tech Supplies Inc.", order_date: "2026-03-01", received_date: "2026-03-05", total_cost: 35000.00, status: "Received" },
+      { po_id: 202, supplier_name: "Paper World Ltd.", order_date: "2026-03-02", received_date: "2026-03-04", total_cost: 5000.00, status: "Received" },
+      { po_id: 203, supplier_name: "Tech Supplies Inc.", order_date: "2026-03-05", received_date: "Pending", total_cost: 20000.00, status: "Ordered" },
+      { po_id: 204, supplier_name: "Office Mart", order_date: "2026-03-06", received_date: "N/A", total_cost: 0.00, status: "Cancelled" }
+    ];
+
+    let SALES_LOG = [
+      { rec: "ORD-101", customer: "John Walk-in", date: "2026-03-10", pay: "UPI", total: "₹4,850.00" },
+      { rec: "ORD-102", customer: "Sarah Tech Ltd.", date: "2026-03-11", pay: "CARD", total: "₹2,400.00" },
+      { rec: "ORD-103", customer: "Alex Brown", date: "2026-03-12", pay: "CASH", total: "₹850.00" }
+    ];
+
+    // Canonical SQL Query Specs matching all PDF DBS Project Requirements
+    const SQL_SPECS = {
+      '01_product_search.sql': {
+        title: "01. Product Search & Filter",
+        file: "backend/queries/01_product_search.sql",
+        concept: "SELECT, WHERE, ILIKE, ORDER BY, JOINS",
+        service: "search_products(search, category_id)",
+        route: "GET /api/products?search=:search",
+        code: `-- FR-4.1 / FR-4.2 / FR-4.3
+-- DBS Concepts: SELECT, WHERE, ILIKE, ORDER BY, JOINS
+SELECT
+    p.product_id,
+    pl.sku,
+    pl.name AS product_name,
+    c.name AS category_name,
+    pl.rack_code,
+    pl.aisle,
+    pl.shelf_number,
+    pl.stock_quantity,
+    pl.low_stock
+FROM product_location pl
+JOIN product p ON p.product_id = pl.product_id
+JOIN category c ON c.category_id = p.category_id
+WHERE ($3::boolean OR p.is_active = TRUE)
+  AND (
+      $1::text = ''
+      OR pl.name ILIKE '%' || $1::text || '%'
+      OR pl.sku ILIKE '%' || $1::text || '%'
+  )
+  AND ($2::integer IS NULL OR p.category_id = $2::integer)
+ORDER BY pl.name;`
+      },
+      '02_low_stock.sql': {
+        title: "02. Low Stock Alerts & Shortfall",
+        file: "backend/queries/02_low_stock.sql",
+        concept: "VIEW product_stock, WHERE, Computed Shortfall",
+        service: "get_low_stock_products()",
+        route: "GET /api/inventory/low-stock",
+        code: `-- FR-7.3 / FR-8.2
+-- DBS Concepts: View Usage, Arithmetic Calculation, Filtering
+SELECT
+    ps.product_id,
+    ps.sku,
+    ps.name AS product_name,
+    ps.stock_quantity,
+    ps.reorder_level,
+    ps.reorder_level - ps.stock_quantity AS shortfall
+FROM product_stock ps
+WHERE ($1::boolean OR ps.is_active = TRUE)
+  AND ps.low_stock = TRUE
+ORDER BY shortfall DESC, ps.name;`
+      },
+      '03_current_stock_location.sql': {
+        title: "03. Current Stock & Rack Coordinates",
+        file: "backend/queries/03_current_stock_location.sql",
+        concept: "VIEW product_location, SUBQUERY with EXISTS",
+        service: "get_current_stock_location()",
+        route: "GET /api/locations?product=:search",
+        code: `-- FR-8.1
+-- DBS Concepts: Correlated Subquery with EXISTS, View Usage
+SELECT
+    pl.product_id,
+    pl.sku,
+    pl.name AS product_name,
+    pl.rack_code,
+    pl.aisle,
+    pl.shelf_number,
+    pl.stock_quantity,
+    pl.low_stock
+FROM product_location pl
+WHERE ($1::boolean OR EXISTS (
+    SELECT 1
+    FROM product p
+    WHERE p.product_id = pl.product_id
+      AND p.is_active = TRUE
+))
+ORDER BY pl.name;`
+      },
+      '04_stock_value_by_category.sql': {
+        title: "04. Stock Valuation & Aggregates",
+        file: "backend/queries/04_stock_value_by_category.sql",
+        concept: "COUNT, SUM, AVG, MIN, MAX, GROUP BY, HAVING",
+        service: "get_stock_value_by_category()",
+        route: "GET /api/reports/stock-value",
+        code: `-- FR-8.3 & DBS Project Section 11 Requirements
+-- Demonstrates: COUNT, SUM, AVG, MIN, MAX, GROUP BY, HAVING, ORDER BY
+SELECT
+    c.category_id,
+    c.name AS category_name,
+    COUNT(ps.product_id) AS product_count,
+    SUM(ps.stock_quantity) AS total_stock_units,
+    ROUND(AVG(ps.unit_price), 2) AS avg_unit_price,
+    MIN(ps.unit_price) AS min_price,
+    MAX(ps.unit_price) AS max_price,
+    SUM(ps.stock_quantity * ps.unit_price) AS total_stock_value
+FROM category c
+JOIN product_stock ps ON ps.category_id = c.category_id
+WHERE ($1::boolean OR ps.is_active = TRUE)
+GROUP BY c.category_id, c.name
+HAVING COUNT(ps.product_id) > 0
+ORDER BY total_stock_value DESC;`
+      },
+      '05_purchase_order_summary.sql': {
+        title: "05. Purchase Order Summary",
+        file: "backend/queries/05_purchase_order_summary.sql",
+        concept: "LEFT JOIN, SUM, COALESCE, GROUP BY, WHERE",
+        service: "get_purchase_order_summary(status)",
+        route: "GET /api/purchases?status=:status",
+        code: `-- FR-8.4
+-- DBS Concepts: Multi-table JOINs, LEFT JOIN, Aggregations
+SELECT
+    po.po_id,
+    s.name AS supplier_name,
+    po.status,
+    po.order_date,
+    po.received_date,
+    COALESCE(SUM(pi.quantity * pi.unit_cost), 0) AS total_cost
+FROM purchase_order po
+JOIN supplier s ON s.supplier_id = po.supplier_id
+LEFT JOIN purchase_item pi ON pi.po_id = po.po_id
+WHERE ($1::text IS NULL OR po.status = $1::text)
+  AND ($2::integer IS NULL OR po.supplier_id = $2::integer)
+GROUP BY po.po_id, s.name, po.status, po.order_date, po.received_date
+ORDER BY po.order_date DESC, po.po_id;`
+      },
+      '06_sales_summary.sql': {
+        title: "06. Sales Summary & Performance",
+        file: "backend/queries/06_sales_summary.sql",
+        concept: "GROUP BY, HAVING, SUM, COUNT DISTINCT",
+        service: "get_sales_summary(group_by)",
+        route: "GET /api/reports/sales?group_by=date|product",
+        code: `-- FR-8.5
+-- A) Sales summary by date:
+SELECT so.sale_date, COUNT(DISTINCT so.sale_id) AS number_of_sales, SUM(si.quantity) AS items_sold, SUM(si.quantity * si.unit_price) AS total_sales
+FROM sales_order so JOIN sales_item si ON si.sale_id = so.sale_id
+WHERE ($1::date IS NULL OR so.sale_date >= $1::date)
+GROUP BY so.sale_date;
+
+-- B) Sales summary by product:
+SELECT p.product_id, p.sku, p.name AS product_name, SUM(si.quantity) AS quantity_sold, SUM(si.quantity * si.unit_price) AS total_sales
+FROM sales_order so JOIN sales_item si ON si.sale_id = so.sale_id JOIN product p ON p.product_id = si.product_id
+GROUP BY p.product_id, p.sku, p.name ORDER BY total_sales DESC;`
+      },
+      '07_supplier_products.sql': {
+        title: "07. Supplier Directory & Catalog",
+        file: "backend/queries/07_supplier_products.sql",
+        concept: "M:N Relationship, LEFT JOIN, WHERE",
+        service: "get_supplier_products()",
+        route: "GET /api/suppliers?product=:search",
+        code: `-- FR-8.6
+-- DBS Concepts: Many-to-Many Linking via product_supplier
+SELECT
+    s.supplier_id,
+    s.name AS supplier_name,
+    s.contact_person,
+    p.product_id,
+    p.sku,
+    p.name AS product_name,
+    ps.supply_price,
+    ps.lead_time_days
+FROM supplier s
+LEFT JOIN product_supplier ps ON ps.supplier_id = s.supplier_id
+LEFT JOIN product p ON p.product_id = ps.product_id
+WHERE ($1::integer IS NULL OR s.supplier_id = $1::integer)
+ORDER BY s.name, p.name;`
+      },
+      '08_insert_product.sql': {
+        title: "08. Insert Product (INSERT)",
+        file: "backend/queries/08_insert_product.sql",
+        concept: "INSERT INTO with Parameters, RETURNING clause",
+        service: "create_product(product_data)",
+        route: "POST /api/products",
+        code: `-- DBS Project Section 10 & 11: INSERT Operation
+INSERT INTO product (
+    product_id, product_name, sku, category_id, shelf_id, unit_price, reorder_level, is_active
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
+RETURNING product_id, sku, product_name, category_id, unit_price, reorder_level;`
+      },
+      '09_update_product.sql': {
+        title: "09. Update Product (UPDATE)",
+        file: "backend/queries/09_update_product.sql",
+        concept: "UPDATE, COALESCE parameter binding, WHERE",
+        service: "update_product(product_id, data)",
+        route: "PUT /api/products/:id",
+        code: `-- DBS Project Section 10 & 11: UPDATE Operation
+UPDATE product
+SET
+    product_name  = COALESCE($2, product_name),
+    category_id   = COALESCE($3, category_id),
+    unit_price    = COALESCE($4, unit_price),
+    reorder_level = COALESCE($5, reorder_level),
+    shelf_id      = COALESCE($6, shelf_id)
+WHERE product_id = $1
+RETURNING product_id, sku, product_name, category_id, unit_price, reorder_level;`
+      },
+      '10_delete_product.sql': {
+        title: "10. Delete / Deactivate (DELETE)",
+        file: "backend/queries/10_delete_product.sql",
+        concept: "DELETE / Soft-Delete, Referential Integrity",
+        service: "delete_product(product_id)",
+        route: "DELETE /api/products/:id",
+        code: `-- DBS Project Section 10 & 11: DELETE / Deactivate Operation
+UPDATE product
+SET is_active = FALSE
+WHERE product_id = $1
+RETURNING product_id, sku, product_name, is_active;`
+      },
+      '11_advanced_subqueries.sql': {
+        title: "11. Advanced Subqueries",
+        file: "backend/queries/11_advanced_subqueries.sql",
+        concept: "Scalar Subquery & IN Subquery Demonstration",
+        service: "execute_parameterized_query()",
+        route: "GET /api/products?above_avg=true",
+        code: `-- DBS Project Section 11: Subqueries Demonstration
+-- Scalar Subquery: Products priced higher than catalog average
+SELECT p.product_id, p.sku, p.product_name, p.unit_price,
+       ROUND((SELECT AVG(unit_price) FROM product WHERE is_active = TRUE), 2) AS catalog_avg_price
+FROM product p
+WHERE p.is_active = TRUE
+  AND p.unit_price > (SELECT AVG(unit_price) FROM product WHERE is_active = TRUE)
+ORDER BY p.unit_price DESC;`
+      }
+    };
+
+    let currentViewKey = 'dashboard';
+    let currentInvStatus = 'ALL';
+    let currentCatalogCategory = 'all';
+    let cart = [];
+    let currentInspectedKey = '01_product_search.sql';
+
+    // Check backend connection health
+    async function checkBackendHealth(showNotice = false) {
+      const badge = document.getElementById('db-status-badge');
+      const sub = document.getElementById('db-status-sub');
+      const pillDot = document.getElementById('live-indicator-dot');
+      const pillText = document.getElementById('live-indicator-text');
+
+      const tryUrls = [
+        `${API_BASE_URL}/health`,
+        'http://127.0.0.1:5000/api/health',
+        'http://localhost:5000/api/health'
+      ];
+
+      for (const url of tryUrls) {
+        try {
+          const res = await fetch(url, { mode: 'cors' });
+          if (res.ok) {
+            const data = await res.json();
+            isLiveBackend = true;
+            badge.className = "inline-flex items-center gap-1.5 text-xs text-emerald-700 font-bold";
+            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live Supabase DB';
+            sub.innerText = "Connected to Flask on :5000";
+
+            pillDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+            pillText.className = "text-emerald-700 font-bold text-xs";
+            pillText.innerText = "Supabase Live (:5000)";
+
+            await fetchLiveData();
+            if (showNotice) alert("Successfully connected to live Supabase PostgreSQL database!");
+            return;
+          }
+        } catch (err) {
+          console.warn("Attempt to connect to", url, "failed:", err);
+        }
+      }
+
+      isLiveBackend = false;
+      badge.className = "inline-flex items-center gap-1.5 text-xs text-amber-700 font-bold";
+      badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Offline Preview';
+      sub.innerText = "Start backend to sync live data";
+
+      pillDot.className = "w-2 h-2 rounded-full bg-amber-500";
+      pillText.className = "text-amber-700 font-bold text-xs";
+      pillText.innerText = "Offline Preview Mode";
+      if (showNotice) alert("Flask server is offline or unreachable. Running with cached Supabase schema data.");
+    }
+
+    async function fetchLiveData() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/products`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && json.data.length > 0) {
+            PRODUCTS = json.data.map(p => ({
+              product_id: p.product_id,
+              sku: p.sku,
+              product_name: p.product_name || p.name,
+              category: p.category_name || 'Electronics',
+              cost_price: Number(p.cost_price || 400),
+              unit_price: Number(p.unit_price || 800),
+              min_stock_level: Number(p.reorder_level || 10),
+              total_stock: Number(p.current_stock ?? p.stock_quantity ?? 0),
+              stock_status: (Number(p.current_stock ?? p.stock_quantity ?? 0) <= 0) ? 'OUT_OF_STOCK' : (p.low_stock ? 'LOW_STOCK' : 'IN_STOCK'),
+              rack_code: p.rack_code || 'R-A1',
+              shelf_number: p.shelf_number || 'S1',
+              aisle: p.aisle || 'A',
+              supplier_name: 'Tech Supplies Inc.'
+            }));
+            renderAll();
+          }
+        }
+      } catch (e) {
+        console.warn("Could not fetch live products:", e);
+      }
+    }
+
+    function switchView(viewKey) {
+      currentViewKey = viewKey;
+      document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
+      const activeEl = document.getElementById('view-' + viewKey);
+      if (activeEl) activeEl.classList.remove('hidden');
+
+      // Update sidebar nav active states (clean light theme)
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.className = "nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left text-slate-600 hover:text-slate-900 hover:bg-slate-100/80";
+      });
+      const activeBtn = document.getElementById('nav-' + viewKey);
+      if (activeBtn) {
+        activeBtn.className = "nav-item flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left bg-brand-600 text-white shadow-sm shadow-brand-600/30 font-bold";
+      }
+
+      const viewInfo = {
+        'dashboard': ['Executive Management Overview', 'Real-time inventory valuation, rack space utilization, and profit performance.', '04_stock_value_by_category.sql'],
+        'inventory': ['Store Inventory Ledger', 'Physical unit counts, cost basis, and status via view product_stock.', '04_stock_value_by_category.sql'],
+        'products': ['Product Catalog Management', 'Parameterized search & full CRUD via 01_product_search.sql.', '01_product_search.sql'],
+        'locations': ['Rack Location Finder', 'Locate items by Aisle, Rack, and Shelf via view product_location.', '03_current_stock_location.sql'],
+        'racks': ['Racks & Shelves Layout', 'Physical warehouse layout, shelf capacity, and visual occupancy.', '03_current_stock_location.sql'],
+        'low-stock': ['Low-Stock Alerts & Triggers', 'Threshold monitoring and shortfall calculation via 02_low_stock.sql.', '02_low_stock.sql'],
+        'suppliers': ['Suppliers Directory', 'Vendor contacts, procurement spend, and items via 07_supplier_products.sql.', '07_supplier_products.sql'],
+        'purchase-orders': ['Purchase Orders & Receiving', 'Procurement workflows and receiving shipments via 05_purchase_order_summary.sql.', '05_purchase_order_summary.sql'],
+        'sales': ['Sales Counter & POS Terminal', 'Point-of-sale checkout and realized profit audit log.', '06_sales_summary.sql'],
+        'reports': ['Reports & Business Analytics', 'Category valuation (HAVING/AGGREGATES) and sales summaries.', '04_stock_value_by_category.sql'],
+        'sql-hub': ['Database & SQL Query Hub', 'Interactive explorer of all 11 parameterized SQL query files.', '01_product_search.sql']
+      };
+
+      if (viewInfo[viewKey]) {
+        document.getElementById('header-title').innerText = viewInfo[viewKey][0];
+        document.getElementById('header-subtitle').innerText = viewInfo[viewKey][1];
+        document.getElementById('header-sql-pill').innerText = viewInfo[viewKey][2];
+      }
+
+      lucide.createIcons();
+    }
+
+    function renderDashboard() {
+      const totalUnits = PRODUCTS.reduce((acc, p) => acc + p.total_stock, 0);
+      const totalVal = PRODUCTS.reduce((acc, p) => acc + (p.total_stock * p.cost_price), 0);
+      const totalRev = PRODUCTS.reduce((acc, p) => acc + (p.total_stock * p.unit_price), 0);
+      const totalProfit = totalRev - totalVal;
+      const avgMargin = totalRev > 0 ? ((totalProfit / totalRev) * 100).toFixed(1) : 0;
+      const lowStockCount = PRODUCTS.filter(p => p.stock_status !== 'IN_STOCK').length;
+
+      document.getElementById('dash-val').innerText = `₹${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('dash-units').innerText = `${totalUnits} total units in stock`;
+      document.getElementById('dash-rev').innerText = `₹${totalRev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('dash-profit').innerText = `₹${totalProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('dash-margin').innerText = `${avgMargin}%`;
+      document.getElementById('dash-skus').innerText = PRODUCTS.length;
+      document.getElementById('dash-deficit-count').innerText = `${lowStockCount} Item${lowStockCount !== 1 ? 's' : ''}`;
+      document.getElementById('sidebar-alert-badge').innerText = lowStockCount;
+
+      // Top margin list
+      const sorted = [...PRODUCTS].sort((a,b) => ((b.unit_price-b.cost_price)/b.unit_price) - ((a.unit_price-a.cost_price)/a.unit_price)).slice(0, 4);
+      const marginCont = document.getElementById('margin-chart-container');
+      marginCont.innerHTML = sorted.map(p => {
+        const pct = (((p.unit_price - p.cost_price) / p.unit_price) * 100).toFixed(1);
+        return `
+          <div class="flex flex-col gap-1.5 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-900">${p.product_name} <span class="text-slate-400 font-mono font-normal">(${p.sku})</span></span>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-mono text-[11px]">Cost: ₹${p.cost_price} → Sell: ₹${p.unit_price}</span>
+                <span class="font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">+${pct}%</span>
+              </div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+              <div class="bg-gradient-to-r from-brand-600 to-teal-500 h-2 rounded-full" style="width: ${Math.min(100, pct)}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Activities
+      const actCont = document.getElementById('activity-list-container');
+      const acts = [
+        { text: "Live PO #201 received into Aisle A", amount: "+30 units", time: "1 hour ago", icon: "check-circle", color: "emerald" },
+        { text: "Sales order ORD-103 checked out", amount: "₹850.00", time: "3 hours ago", icon: "receipt", color: "brand" },
+        { text: "Low stock alert: Office Chair (0 left)", amount: "Deficit: 5", time: "Today", icon: "alert-triangle", color: "amber" },
+        { text: "Stock placement verified for R-A1", amount: "46 units", time: "Yesterday", icon: "map-pin", color: "slate" }
+      ];
+      actCont.innerHTML = acts.map(a => `
+        <div class="flex items-start justify-between gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs">
+          <div>
+            <div class="font-semibold text-slate-800">${a.text}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">${a.time}</div>
+          </div>
+          <span class="font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded text-[11px] shrink-0">${a.amount}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderInventory() {
+      const search = (document.getElementById('inventory-search')?.value || '').toLowerCase();
+      const cat = document.getElementById('inventory-cat-filter')?.value || 'all';
+
+      const filtered = PRODUCTS.filter(p => {
+        const matchesSearch = p.product_name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search);
+        const matchesCat = cat === 'all' || p.category === cat;
+        const matchesStatus = currentInvStatus === 'ALL' || p.stock_status === currentInvStatus;
+        return matchesSearch && matchesCat && matchesStatus;
+      });
+
+      document.getElementById('inventory-count-text').innerText = `${filtered.length} SKUs Found`;
+      const tbody = document.getElementById('inventory-table-body');
+      tbody.innerHTML = filtered.map(p => {
+        const val = (p.total_stock * p.cost_price).toFixed(2);
+        const statusBadge = p.stock_status === 'IN_STOCK' ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">In Stock</span>' : (p.stock_status === 'LOW_STOCK' ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Low Stock</span>' : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Out of Stock</span>');
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-4">
+              <div class="font-bold text-slate-900">${p.product_name}</div>
+              <div class="text-[10px] text-slate-500 font-mono">${p.sku}</div>
+            </td>
+            <td class="p-4 text-slate-600 font-medium">${p.category}</td>
+            <td class="p-4 text-right font-mono text-slate-500">₹${p.cost_price.toFixed(2)}</td>
+            <td class="p-4 text-right font-mono font-bold text-slate-900">₹${p.unit_price.toFixed(2)}</td>
+            <td class="p-4 text-center font-bold text-slate-800 font-mono">${p.total_stock}</td>
+            <td class="p-4 text-right font-mono font-bold text-emerald-700">₹${val}</td>
+            <td class="p-4 text-center">${statusBadge}</td>
+            <td class="p-4 text-right">
+              <button onclick="openInspector('04_stock_value_by_category.sql')" class="text-xs text-brand-600 font-bold hover:underline">SQL Spec</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function setInvStatus(st) {
+      currentInvStatus = st;
+      ['ALL', 'IN_STOCK', 'LOW_STOCK', 'OUT_OF_STOCK'].forEach(s => {
+        const btn = document.getElementById('inv-st-' + s);
+        if (btn) {
+          btn.className = s === st 
+            ? "px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-sm" 
+            : "px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900";
+        }
+      });
+      renderInventory();
+    }
+
+    function filterCatalogCategory(cat) {
+      currentCatalogCategory = cat;
+      ['all', 'Electronics', 'Stationery', 'Furniture'].forEach(c => {
+        const chip = document.getElementById('cat-chip-' + c);
+        if (chip) {
+          chip.className = c === cat
+            ? "px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-600 text-white shadow-sm"
+            : "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200";
+        }
+      });
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const search = (document.getElementById('catalog-search')?.value || '').toLowerCase();
+
+      const filtered = PRODUCTS.filter(p => {
+        const matchesSearch = p.product_name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search);
+        const matchesCat = currentCatalogCategory === 'all' || p.category === currentCatalogCategory;
+        return matchesSearch && matchesCat;
+      });
+
+      const container = document.getElementById('catalog-grid-container');
+      container.innerHTML = filtered.map(p => `
+        <div class="premium-card rounded-2xl p-5 flex flex-col justify-between gap-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] text-brand-600 font-mono font-bold uppercase tracking-wider">${p.category}</span>
+              <h3 class="text-base font-bold text-slate-900 tracking-tight mt-0.5">${p.product_name}</h3>
+              <span class="text-[11px] text-slate-400 font-mono font-medium">${p.sku}</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${p.total_stock > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">${p.total_stock > 0 ? `${p.total_stock} in stock` : 'Out of stock'}</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 text-xs">
+            <div>
+              <span class="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Cost / Sell</span>
+              <span class="font-mono text-slate-500">₹${p.cost_price} / <strong class="text-slate-900 font-bold">₹${p.unit_price}</strong></span>
+            </div>
+            <div class="text-right">
+              <span class="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Rack Location</span>
+              <span class="font-mono font-bold text-brand-700">${p.rack_code}-${p.shelf_number}</span>
+            </div>
+          </div>
+
+          <!-- Interactive Action Buttons: Edit, Delete, POS -->
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <button onclick="handleAddToCart(${p.product_id})" class="flex-1 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> POS
+            </button>
+            <button onclick="openEditModal(${p.product_id})" title="Edit Product (UPDATE)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition-colors">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="handleProductDelete(${p.product_id})" title="Delete Product (DELETE)" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-200 transition-colors">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function renderLocations() {
+      const search = (document.getElementById('location-search')?.value || '').toLowerCase();
+      const filtered = PRODUCTS.filter(p => 
+        p.product_name.toLowerCase().includes(search) ||
+        p.sku.toLowerCase().includes(search) ||
+        p.rack_code.toLowerCase().includes(search)
+      );
+
+      document.getElementById('locations-count-text').innerText = `${filtered.length} Locations Mapped`;
+      const tbody = document.getElementById('locations-table-body');
+      tbody.innerHTML = filtered.map(p => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="p-4">
+            <div class="font-bold text-slate-900">${p.product_name}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${p.sku}</div>
+          </td>
+          <td class="p-4 text-slate-600 font-semibold">${p.aisle}</td>
+          <td class="p-4">
+            <span class="px-2.5 py-1 rounded-lg font-mono font-bold bg-indigo-50 text-brand-700 border border-brand-200">${p.rack_code}</span>
+          </td>
+          <td class="p-4 text-center font-mono font-bold text-slate-700">Shelf ${p.shelf_number}</td>
+          <td class="p-4 text-center font-mono font-bold text-slate-900">${p.total_stock}</td>
+          <td class="p-4">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${p.total_stock > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">${p.total_stock > 0 ? 'Assigned' : 'Empty Shelf'}</span>
+          </td>
+          <td class="p-4 text-right">
+            <button onclick="switchView('racks')" class="text-xs text-brand-600 font-bold hover:underline">View Rack →</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderRacks() {
+      const container = document.getElementById('racks-grid-container');
+      container.innerHTML = RACKS.map(r => `
+        <div class="premium-card rounded-2xl p-5 flex flex-col justify-between gap-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] font-mono text-brand-600 font-bold uppercase tracking-wider">${r.zone}</span>
+              <h3 class="text-lg font-black text-slate-900 mt-0.5">${r.rack_code}</h3>
+              <span class="text-xs text-slate-500 font-medium">${r.aisle} • ${r.cat}</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-brand-700 border border-brand-200">${r.pct}% Full</span>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between text-xs text-slate-600 font-medium">
+              <span>Capacity Utilized</span>
+              <span class="font-mono font-bold text-slate-900">${r.current} / ${r.max} Units</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div class="bg-brand-600 h-2.5 rounded-full" style="width: ${r.pct}%"></div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
+            <span class="text-slate-400 font-medium">Shelves S1, S2, S3</span>
+            <button onclick="switchView('locations')" class="text-brand-600 font-bold hover:underline">View Placements →</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAlerts() {
+      const lowStock = PRODUCTS.filter(p => p.stock_status !== 'IN_STOCK');
+      document.getElementById('low-stock-banner-title').innerText = `${lowStock.length} Item${lowStock.length !== 1 ? 's' : ''} Triggered Low Stock Threshold`;
+
+      const tbody = document.getElementById('alerts-table-body');
+      tbody.innerHTML = lowStock.map(p => {
+        const shortfall = Math.max(0, p.min_stock_level - p.total_stock);
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-4">
+              <div class="font-bold text-slate-900">${p.product_name}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${p.sku} • ${p.category}</div>
+            </td>
+            <td class="p-4 text-center font-mono font-bold text-rose-600 text-sm">${p.total_stock}</td>
+            <td class="p-4 text-center font-mono text-slate-600 font-bold">${p.min_stock_level}</td>
+            <td class="p-4 text-center">
+              <span class="px-2.5 py-1 rounded-full text-xs font-mono font-black bg-rose-50 text-rose-700 border border-rose-200">-${shortfall} units</span>
+            </td>
+            <td class="p-4 text-right">
+              <button onclick="switchView('purchase-orders')" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm">
+                Create PO
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderSuppliers() {
+      const container = document.getElementById('suppliers-grid-container');
+      container.innerHTML = SUPPLIERS.map(s => `
+        <div class="premium-card rounded-2xl p-5 flex flex-col justify-between gap-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">${s.name}</h3>
+              <span class="text-xs text-slate-500 font-medium">Contact: ${s.contact}</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">${s.status}</span>
+          </div>
+          <div class="text-xs text-slate-500 flex flex-col gap-1">
+            <span>${s.email}</span>
+            <span>${s.phone}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 text-center">
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/60"><span class="text-[9px] text-slate-400 font-bold block uppercase">SKUS</span><span class="text-xs font-black text-slate-900">${s.skus}</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/60"><span class="text-[9px] text-slate-400 font-bold block uppercase">ORDERS</span><span class="text-xs font-black text-slate-900">${s.orders}</span></div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/60"><span class="text-[9px] text-slate-400 font-bold block uppercase">SPEND</span><span class="text-xs font-black text-brand-700">${s.spend}</span></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPOs() {
+      const tbody = document.getElementById('pos-table-body');
+      tbody.innerHTML = PURCHASE_ORDERS.map(po => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="p-4 font-bold text-slate-900 font-mono text-xs">PO-${po.po_id}</td>
+          <td class="p-4 font-semibold text-slate-800">${po.supplier_name}</td>
+          <td class="p-4 text-slate-500 font-mono">${po.order_date}</td>
+          <td class="p-4 text-slate-500 font-mono">${po.received_date || 'N/A'}</td>
+          <td class="p-4 text-right font-mono font-bold text-slate-900">₹${po.total_cost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td class="p-4 text-center">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${po.status === 'Received' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (po.status === 'Ordered' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-rose-50 text-rose-700 border border-rose-200')}">${po.status}</span>
+          </td>
+          <td class="p-4 text-right">
+            <button onclick="openInspector('05_purchase_order_summary.sql')" class="text-xs text-brand-600 font-bold hover:underline">Inspect</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPosCatalog() {
+      const search = (document.getElementById('pos-product-search')?.value || '').toLowerCase();
+      const filtered = PRODUCTS.filter(p => p.product_name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search));
+      const container = document.getElementById('pos-catalog-grid');
+      container.innerHTML = filtered.map(p => `
+        <div onclick="handleAddToCart(${p.product_id})" class="premium-card rounded-xl p-3.5 flex flex-col justify-between gap-2 cursor-pointer hover:border-brand-500 transition-all">
+          <div>
+            <div class="font-bold text-slate-900 text-xs truncate">${p.product_name}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${p.sku}</div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+            <span class="font-mono font-black text-brand-700 text-sm">₹${p.unit_price.toFixed(2)}</span>
+            <span class="text-[10px] font-bold ${p.total_stock > 0 ? 'text-slate-500' : 'text-rose-600'}">${p.total_stock} in stock</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleAddToCart(productId) {
+      const prod = PRODUCTS.find(p => p.product_id === productId);
+      if (!prod) return;
+      const existing = cart.find(c => c.product_id === productId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ ...prod, quantity: 1 });
+      }
+      renderCart();
+    }
+
+    function updateCartQty(productId, delta) {
+      const item = cart.find(c => c.product_id === productId);
+      if (!item) return;
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(c => c.product_id !== productId);
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      const countEl = document.getElementById('cart-item-count');
+      const itemsEl = document.getElementById('pos-cart-items');
+      const subtotalEl = document.getElementById('cart-subtotal');
+      const taxEl = document.getElementById('cart-tax');
+      const totalEl = document.getElementById('cart-total');
+
+      const totalItems = cart.reduce((acc, c) => acc + c.quantity, 0);
+      countEl.innerText = `${totalItems} items`;
+
+      if (cart.length === 0) {
+        itemsEl.innerHTML = '<p class="text-xs text-slate-400 italic py-8 text-center">Cart is empty. Click items from catalog to add.</p>';
+        subtotalEl.innerText = '₹0.00';
+        taxEl.innerText = '₹0.00';
+        totalEl.innerText = '₹0.00';
+        return;
+      }
+
+      const subtotal = cart.reduce((acc, c) => acc + (c.quantity * c.unit_price), 0);
+      const tax = subtotal * 0.05;
+      const total = subtotal + tax;
+
+      subtotalEl.innerText = `₹${subtotal.toFixed(2)}`;
+      taxEl.innerText = `₹${tax.toFixed(2)}`;
+      totalEl.innerText = `₹${total.toFixed(2)}`;
+
+      itemsEl.innerHTML = cart.map(item => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <div class="truncate pr-2">
+            <span class="font-bold text-slate-900 block truncate">${item.product_name}</span>
+            <span class="text-[10px] text-slate-500 font-mono">₹${item.unit_price} each</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="updateCartQty(${item.product_id}, -1)" class="w-6 h-6 rounded bg-slate-200 text-slate-800 font-bold flex items-center justify-center hover:bg-slate-300">-</button>
+            <span class="font-mono font-bold text-slate-900">${item.quantity}</span>
+            <button onclick="updateCartQty(${item.product_id}, 1)" class="w-6 h-6 rounded bg-slate-200 text-slate-800 font-bold flex items-center justify-center hover:bg-slate-300">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleCheckout() {
+      if (cart.length === 0) {
+        alert("Cart is empty!");
+        return;
+      }
+      const customer = document.getElementById('pos-customer').value || 'Walk-in Customer';
+      const subtotal = cart.reduce((acc, c) => acc + (c.quantity * c.unit_price), 0);
+      const tax = subtotal * 0.05;
+      const total = subtotal + tax;
+      const recNumber = `ORD-${Date.now().toString().slice(-4)}`;
+
+      // Deduct local units
+      cart.forEach(item => {
+        const p = PRODUCTS.find(prod => prod.product_id === item.product_id);
+        if (p) p.total_stock = Math.max(0, p.total_stock - item.quantity);
+      });
+
+      SALES_LOG.unshift({
+        rec: recNumber,
+        customer,
+        date: new Date().toISOString().split('T')[0],
+        pay: 'UPI',
+        total: `₹${total.toFixed(2)}`
+      });
+
+      // Show receipt modal
+      const recContent = document.getElementById('receipt-modal-content');
+      recContent.innerHTML = `
+        <div class="flex justify-between text-slate-500 text-[11px]">
+          <span>Receipt: ${recNumber}</span>
+          <span>${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="text-slate-800 font-bold mb-1">Customer: ${customer}</div>
+        <div class="border-t border-dashed border-slate-300 my-1"></div>
+        ${cart.map(c => `
+          <div class="flex justify-between text-slate-700">
+            <span>${c.product_name} x${c.quantity}</span>
+            <span>₹${(c.quantity * c.unit_price).toFixed(2)}</span>
+          </div>
+        `).join('')}
+        <div class="border-t border-dashed border-slate-300 my-1"></div>
+        <div class="flex justify-between font-bold text-slate-900 text-sm">
+          <span>PAID TOTAL</span>
+          <span>₹${total.toFixed(2)}</span>
+        </div>
+      `;
+      document.getElementById('receipt-modal').classList.remove('hidden');
+
+      cart = [];
+      renderCart();
+      renderAll();
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receipt-modal').classList.add('hidden');
+    }
+
+    function renderSalesLog() {
+      const tbody = document.getElementById('sales-log-table-body');
+      tbody.innerHTML = SALES_LOG.map(s => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="p-4 font-bold text-slate-900 font-mono">${s.rec}</td>
+          <td class="p-4 text-slate-700 font-medium">${s.customer}</td>
+          <td class="p-4 text-slate-500 font-mono">${s.date}</td>
+          <td class="p-4 text-center">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">${s.pay}</span>
+          </td>
+          <td class="p-4 text-right font-mono font-bold text-brand-700">${s.total}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderReports() {
+      // Category valuation demonstrating HAVING and Aggregate functions
+      const cats = {};
+      PRODUCTS.forEach(p => {
+        if (!cats[p.category]) cats[p.category] = { skus: 0, units: 0, value: 0, prices: [] };
+        cats[p.category].skus += 1;
+        cats[p.category].units += p.total_stock;
+        cats[p.category].value += (p.total_stock * p.unit_price);
+        cats[p.category].prices.push(p.unit_price);
+      });
+
+      const catBody = document.getElementById('reports-valuation-body');
+      catBody.innerHTML = Object.keys(cats).map(catName => {
+        const c = cats[catName];
+        const avg = (c.prices.reduce((a,b)=>a+b,0) / c.prices.length).toFixed(2);
+        const min = Math.min(...c.prices).toFixed(2);
+        const max = Math.max(...c.prices).toFixed(2);
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-4 font-bold text-slate-900">${catName}</td>
+            <td class="p-4 text-center font-bold text-slate-800">${c.skus}</td>
+            <td class="p-4 text-center font-bold text-slate-600 font-mono">${c.units}</td>
+            <td class="p-4 text-right font-mono text-slate-700">₹${avg}</td>
+            <td class="p-4 text-right font-mono text-slate-700">₹${min}</td>
+            <td class="p-4 text-right font-mono text-slate-700">₹${max}</td>
+            <td class="p-4 text-right font-mono font-bold text-emerald-700">₹${c.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // Sales turnover by product
+      const prodBody = document.getElementById('reports-sales-product-body');
+      const sampleTurnover = [
+        { sku: "EL102", name: "Keyboard", qty: 15, sales: "₹18,000.00" },
+        { sku: "ST101", name: "Notebook", qty: 40, sales: "₹4,000.00" },
+        { sku: "EL101", name: "Wireless Mouse", qty: 12, sales: "₹10,200.00" },
+        { sku: "EL103", name: "USB Cable", qty: 25, sales: "₹7,500.00" }
+      ];
+      prodBody.innerHTML = sampleTurnover.map(t => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="p-4">
+            <div class="font-bold text-slate-900">${t.name}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${t.sku}</div>
+          </td>
+          <td class="p-4 text-center font-bold font-mono text-slate-800">${t.qty}</td>
+          <td class="p-4 text-right font-mono font-bold text-brand-700">${t.sales}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderSqlHub() {
+      const container = document.getElementById('sql-files-grid');
+      container.innerHTML = Object.keys(SQL_SPECS).map(file => {
+        const s = SQL_SPECS[file];
+        return `
+          <div onclick="openInspector('${file}')" class="premium-card rounded-2xl p-4 flex flex-col justify-between gap-3 cursor-pointer hover:border-brand-500">
+            <div>
+              <span class="text-[10px] font-mono font-bold text-brand-600 uppercase tracking-wider">${s.file}</span>
+              <h4 class="text-sm font-bold text-slate-900 mt-0.5">${s.title}</h4>
+              <span class="text-[11px] text-slate-500 font-medium block mt-1">${s.concept}</span>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-brand-600 font-bold">
+              <span>Inspect & Execute</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function openInspector(key) {
+      currentInspectedKey = key;
+      const spec = SQL_SPECS[key] || SQL_SPECS['01_product_search.sql'];
+      document.getElementById('modal-sql-title').innerText = spec.title;
+      document.getElementById('modal-sql-file').innerText = spec.file;
+      document.getElementById('modal-sql-concept').innerText = spec.concept;
+      document.getElementById('modal-sql-service').innerText = spec.service;
+      document.getElementById('modal-sql-route').innerText = spec.route;
+      document.getElementById('modal-sql-code').innerText = spec.code;
+      document.getElementById('modal-sql-result-area').classList.add('hidden');
+      document.getElementById('inspector-modal').classList.remove('hidden');
+    }
+
+    function closeInspector() {
+      document.getElementById('inspector-modal').classList.add('hidden');
+    }
+
+    function copySqlCode() {
+      const code = document.getElementById('modal-sql-code').innerText;
+      navigator.clipboard.writeText(code);
+      alert("SQL Query copied to clipboard!");
+    }
+
+    // Live Query Execution Runner right inside the Modal
+    async function runCurrentQueryLive() {
+      const resArea = document.getElementById('modal-sql-result-area');
+      const resContent = document.getElementById('modal-sql-result-content');
+      const resCount = document.getElementById('modal-sql-result-count');
+      const btn = document.getElementById('btn-run-live-query');
+      
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Executing on Supabase...`;
+      
+      try {
+        let endpoint = `${API_BASE_URL}/products`;
+        if (currentInspectedKey.includes('low_stock')) endpoint = `${API_BASE_URL}/inventory/low-stock`;
+        else if (currentInspectedKey.includes('location')) endpoint = `${API_BASE_URL}/locations`;
+        else if (currentInspectedKey.includes('category')) endpoint = `${API_BASE_URL}/reports/stock-value`;
+        else if (currentInspectedKey.includes('purchase')) endpoint = `${API_BASE_URL}/purchases`;
+        else if (currentInspectedKey.includes('sales')) endpoint = `${API_BASE_URL}/reports/sales`;
+        else if (currentInspectedKey.includes('supplier')) endpoint = `${API_BASE_URL}/suppliers`;
+
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const data = await res.json();
+        
+        const rows = data.data || data;
+        resCount.innerText = `${Array.isArray(rows) ? rows.length : 1} records returned from Supabase`;
+        resContent.innerHTML = `<pre class="whitespace-pre overflow-x-auto">${JSON.stringify(rows, null, 2)}</pre>`;
+        resArea.classList.remove('hidden');
+      } catch (err) {
+        resCount.innerText = `Offline Preview Data`;
+        resContent.innerHTML = `<span class="text-amber-700 font-semibold">Note: Live API offline or mock mode. Loaded from local catalog preview:</span>\n` +
+                               `<pre class="whitespace-pre overflow-x-auto">${JSON.stringify(PRODUCTS.slice(0, 3), null, 2)}</pre>`;
+        resArea.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5 mr-1"></i> Test Query on Supabase`;
+        lucide.createIcons();
+      }
+    }
+
+    function openProductModal() {
+      document.getElementById('product-modal').classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      document.getElementById('product-modal').classList.add('hidden');
+    }
+
+    function openEditModal(productId) {
+      const prod = PRODUCTS.find(p => p.product_id === productId);
+      if (!prod) return;
+      document.getElementById('edit-p-id').value = prod.product_id;
+      document.getElementById('edit-p-id-label').innerText = `Product #${prod.product_id} (${prod.sku})`;
+      document.getElementById('edit-p-name').value = prod.product_name;
+      document.getElementById('edit-p-cat').value = prod.category;
+      document.getElementById('edit-p-price').value = prod.unit_price;
+      document.getElementById('edit-p-min').value = prod.min_stock_level;
+      document.getElementById('edit-product-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-product-modal').classList.add('hidden');
+    }
+
+    // Full CRUD: INSERT
+    async function handleProductAdd(e) {
+      e.preventDefault();
+      const name = document.getElementById('add-p-name').value;
+      const sku = document.getElementById('add-p-sku').value;
+      const cat = document.getElementById('add-p-cat').value;
+      const cost = parseFloat(document.getElementById('add-p-cost').value) || 0;
+      const price = parseFloat(document.getElementById('add-p-price').value) || 0;
+      const min = parseInt(document.getElementById('add-p-min').value) || 10;
+
+      const payload = {
+        product_name: name,
+        sku: sku,
+        category: cat,
+        cost_price: cost,
+        unit_price: price,
+        reorder_level: min
+      };
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          alert(`Success (INSERT)! Product "${name}" (${sku}) was saved directly to your Supabase PostgreSQL database!`);
+          closeProductModal();
+          await fetchLiveData();
+          return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || 'Failed to save product');
+        }
+      } catch (err) {
+        console.warn("API insert fallback:", err);
+        PRODUCTS.unshift({
+          product_id: Date.now(),
+          sku,
+          product_name: name,
+          category: cat,
+          cost_price: cost,
+          unit_price: price,
+          min_stock_level: min,
+          total_stock: 0,
+          stock_status: 'OUT_OF_STOCK',
+          rack_code: 'R-A1',
+          shelf_number: 'S1',
+          aisle: 'A',
+          supplier_name: 'Tech Supplies Inc.'
+        });
+        closeProductModal();
+        renderAll();
+        alert(`Product "${name}" added to local preview ledger!`);
+      }
+    }
+
+    // Full CRUD: UPDATE
+    async function handleProductUpdate(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('edit-p-id').value);
+      const name = document.getElementById('edit-p-name').value;
+      const cat = document.getElementById('edit-p-cat').value;
+      const price = parseFloat(document.getElementById('edit-p-price').value) || 0;
+      const min = parseInt(document.getElementById('edit-p-min').value) || 10;
+
+      const payload = {
+        product_name: name,
+        category: cat,
+        unit_price: price,
+        reorder_level: min
+      };
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert(`Success (UPDATE)! Product #${id} was updated in Supabase PostgreSQL!`);
+          closeEditModal();
+          await fetchLiveData();
+          return;
+        }
+      } catch (err) {
+        console.warn("API update fallback:", err);
+      }
+
+      // Local fallback
+      const prod = PRODUCTS.find(p => p.product_id === id);
+      if (prod) {
+        prod.product_name = name;
+        prod.category = cat;
+        prod.unit_price = price;
+        prod.min_stock_level = min;
+      }
+      closeEditModal();
+      renderAll();
+      alert(`Product #${id} updated in local preview!`);
+    }
+
+    // Full CRUD: DELETE
+    async function handleProductDelete(productId) {
+      const prod = PRODUCTS.find(p => p.product_id === productId);
+      if (!confirm(`Are you sure you want to delete/deactivate "${prod ? prod.product_name : productId}"?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/products/${productId}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          alert(`Success (DELETE)! Product #${productId} was deactivated in Supabase PostgreSQL!`);
+          await fetchLiveData();
+          return;
+        }
+      } catch (err) {
+        console.warn("API delete fallback:", err);
+      }
+
+      PRODUCTS = PRODUCTS.filter(p => p.product_id !== productId);
+      renderAll();
+      alert(`Product #${productId} removed from catalog!`);
+    }
+
+    function renderAll() {
+      renderDashboard();
+      renderInventory();
+      renderCatalog();
+      renderLocations();
+      renderRacks();
+      renderAlerts();
+      renderSuppliers();
+      renderPOs();
+      renderPosCatalog();
+      renderSalesLog();
+      renderReports();
+      renderSqlHub();
+      lucide.createIcons();
+    }
+
+    window.onload = async () => {
+      renderAll();
+      await checkBackendHealth(false);
+    };
+  </script>
+</body>
+</html>
