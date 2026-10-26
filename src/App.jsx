@@ -5,8 +5,9 @@ import QueryInspectorModal from './components/layout/QueryInspectorModal';
 
 // Views
 import DashboardView from './components/views/DashboardView';
-import StoreInventoryView from './components/views/StoreInventoryView';
 import ProductSearchView from './components/views/ProductSearchView';
+import CategoriesView from './components/views/CategoriesView';
+import StoreInventoryView from './components/views/StoreInventoryView';
 import LocationFinderView from './components/views/LocationFinderView';
 import RacksShelvesView from './components/views/RacksShelvesView';
 import LowStockAlertsView from './components/views/LowStockAlertsView';
@@ -14,10 +15,10 @@ import SuppliersView from './components/views/SuppliersView';
 import PurchaseOrdersView from './components/views/PurchaseOrdersView';
 import SalesPOSView from './components/views/SalesPOSView';
 import ReportsView from './components/views/ReportsView';
-import SqlIntegrationHubView from './components/views/SqlIntegrationHubView';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Navigation contextual parameters
   const [locationSearchPrefill, setLocationSearchPrefill] = useState('');
@@ -51,7 +52,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-dark-900 text-slate-100 antialiased font-sans">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-800 antialiased font-sans">
       {/* Sidebar Navigation */}
       <Sidebar
         currentView={currentView}
@@ -60,9 +61,10 @@ export default function App() {
           setLocationSearchPrefill('');
           setPoPrefillItem(null);
           setPoPrefillSupplier(null);
+          setIsMobileSidebarOpen(false);
         }}
-        alertCount={5}
-        onOpenInspector={() => handleOpenInspector(currentView)}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Workspace Area */}
@@ -71,10 +73,11 @@ export default function App() {
         <Header
           currentView={currentView}
           onOpenInspector={() => handleOpenInspector(currentView)}
+          onToggleSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
         />
 
         {/* Dynamic View Workspace */}
-        <main className="flex-1 p-5 md:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
           {currentView === 'dashboard' && (
             <DashboardView
               onNavigate={setCurrentView}
@@ -84,18 +87,21 @@ export default function App() {
             />
           )}
 
-          {currentView === 'inventory' && (
-            <StoreInventoryView
-              onOpenInspector={() => handleOpenInspector('inventory')}
-              onNavigateToLocation={handleNavigateToLocation}
-              onAddProduct={() => setCurrentView('products')}
-            />
-          )}
-
           {currentView === 'products' && (
             <ProductSearchView
               onOpenInspector={() => handleOpenInspector('products')}
               onNavigateToLocation={handleNavigateToLocation}
+            />
+          )}
+
+          {currentView === 'categories' && (
+            <CategoriesView />
+          )}
+
+          {currentView === 'inventory' && (
+            <StoreInventoryView
+              onOpenInspector={() => handleOpenInspector('inventory')}
+              onAddProduct={() => setCurrentView('products')}
             />
           )}
 
@@ -144,10 +150,6 @@ export default function App() {
             <ReportsView
               onOpenInspector={() => handleOpenInspector('reports')}
             />
-          )}
-
-          {currentView === 'sql-hub' && (
-            <SqlIntegrationHubView />
           )}
         </main>
       </div>

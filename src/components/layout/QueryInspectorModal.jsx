@@ -231,9 +231,9 @@ export default function QueryInspectorModal({ isOpen, onClose, currentViewId = '
       subtitle="Examine the query mapping, backend endpoints, and input parameters for this page"
       maxWidth="max-w-4xl"
     >
-      <div className="flex flex-col gap-6 text-xs">
+      <div className="flex flex-col gap-5 text-xs text-slate-700">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-800">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100">
           {Object.keys(PAGE_SQL_MAPPINGS).map((key) => {
             const map = PAGE_SQL_MAPPINGS[key];
             const isSelected = selectedKey === key;
@@ -241,10 +241,10 @@ export default function QueryInspectorModal({ isOpen, onClose, currentViewId = '
               <button
                 key={key}
                 onClick={() => setSelectedKey(key)}
-                className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
                   isSelected 
-                    ? 'bg-brand-500 text-white shadow-sm' 
-                    : 'bg-dark-700 text-slate-400 hover:text-white hover:bg-dark-600'
+                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-sm' 
+                    : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                 }`}
               >
                 {map.title.split(' ')[0]}
@@ -254,37 +254,37 @@ export default function QueryInspectorModal({ isOpen, onClose, currentViewId = '
         </div>
 
         {/* Feature Overview Card */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-dark-800/80 rounded-xl p-4 border border-slate-800 flex flex-col gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Target SQL Query File</span>
-            <div className="flex items-center gap-2 text-brand-400 font-mono font-bold text-xs bg-dark-900/60 p-2 rounded-lg border border-slate-800">
-              <FileText className="w-4 h-4 text-brand-500 shrink-0" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Target SQL Query File</span>
+            <div className="flex items-center gap-2 text-teal-800 font-mono font-bold text-xs bg-white p-2 rounded-lg border border-slate-200">
+              <FileText className="w-4 h-4 text-teal-600 shrink-0" />
               <span>{activeMapping.sqlFile}</span>
             </div>
-            <span className="text-[10px] text-slate-400">Organized in root <code className="text-slate-300">queries/</code> directory</span>
+            <span className="text-[10px] text-slate-500">Stored in project <code className="text-slate-700 font-bold">backend/queries/</code></span>
           </div>
 
-          <div className="bg-dark-800/80 rounded-xl p-4 border border-slate-800 flex flex-col gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Frontend Service & Backend Route</span>
-            <div className="flex items-center justify-between text-xs bg-dark-900/60 p-2 rounded-lg border border-slate-800 font-mono">
-              <span className="text-indigo-300">{activeMapping.serviceFile}</span>
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Frontend Service & Backend Route</span>
+            <div className="flex items-center justify-between text-xs bg-white p-2 rounded-lg border border-slate-200 font-mono">
+              <span className="text-slate-700">{activeMapping.serviceFile}</span>
             </div>
-            <div className="text-[11px] text-slate-300 font-mono font-bold flex items-center gap-1.5 text-emerald-400">
-              <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-[10px]">ROUTE</span>
+            <div className="text-[11px] font-mono font-bold flex items-center gap-1.5 text-teal-700">
+              <span className="px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 text-[10px]">ROUTE</span>
               {activeMapping.apiRoute}
             </div>
           </div>
         </div>
 
         {/* Canonical Views Used */}
-        <div className="bg-dark-800/50 rounded-xl p-4 border border-slate-800 flex flex-col gap-2">
+        <div className="bg-slate-50/70 rounded-xl p-3.5 border border-slate-200 flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-brand-500" />
-            <span className="text-[11px] font-bold text-white uppercase tracking-wider">Canonical Views / Schema Integration</span>
+            <Database className="w-4 h-4 text-teal-600" />
+            <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">Canonical Views / Schema Integration</span>
           </div>
           <div className="flex flex-wrap gap-2 mt-1">
             {activeMapping.viewsUsed.map((v, i) => (
-              <span key={i} className="px-2.5 py-1 bg-dark-700 text-slate-300 rounded-md border border-slate-700/60 font-mono text-[11px]">
+              <span key={i} className="px-2.5 py-1 bg-white text-slate-700 rounded-lg border border-slate-200 font-mono text-[11px]">
                 {v}
               </span>
             ))}
@@ -293,24 +293,24 @@ export default function QueryInspectorModal({ isOpen, onClose, currentViewId = '
 
         {/* User Input Mapping Table */}
         <div className="flex flex-col gap-2">
-          <span className="text-[11px] font-bold text-white uppercase tracking-wider">User Input Controls & Parameter Binding</span>
-          <div className="rounded-xl border border-slate-800 overflow-hidden">
+          <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">User Input Controls & Parameter Binding</span>
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-dark-800 text-slate-400 font-bold border-b border-slate-800 uppercase tracking-wider">
+                <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
                   <th className="p-3">UI Form Field / Filter</th>
                   <th className="p-3">API Payload Key</th>
                   <th className="p-3">SQL Parameter Marker</th>
                   <th className="p-3">Data Type</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-dark-900/40">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {activeMapping.parameters.map((p, idx) => (
-                  <tr key={idx} className="hover:bg-dark-700/30">
-                    <td className="p-3 font-semibold text-slate-200">{p.field}</td>
-                    <td className="p-3 font-mono text-indigo-400">{p.apiParam}</td>
-                    <td className="p-3 font-mono text-brand-400 font-bold">{p.sqlParam}</td>
-                    <td className="p-3 text-slate-400">{p.type}</td>
+                  <tr key={idx} className="hover:bg-slate-50/70">
+                    <td className="p-3 font-semibold text-slate-800">{p.field}</td>
+                    <td className="p-3 font-mono text-sky-700">{p.apiParam}</td>
+                    <td className="p-3 font-mono text-teal-700 font-bold">{p.sqlParam}</td>
+                    <td className="p-3 text-slate-500">{p.type}</td>
                   </tr>
                 ))}
               </tbody>
@@ -321,16 +321,16 @@ export default function QueryInspectorModal({ isOpen, onClose, currentViewId = '
         {/* SQL Snippet Preview */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-white uppercase tracking-wider">SQL Query Preview</span>
+            <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">SQL Query Preview</span>
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-dark-700 hover:bg-dark-600 text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors font-semibold"
             >
-              {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copied' : 'Copy Query'}</span>
             </button>
           </div>
-          <pre className="p-4 rounded-xl bg-dark-950 border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed">
+          <pre className="p-4 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-slate-100 overflow-x-auto leading-relaxed shadow-sm">
             {activeMapping.sqlSnippet}
           </pre>
         </div>

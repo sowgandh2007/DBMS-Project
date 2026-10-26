@@ -1,116 +1,126 @@
 import React from 'react';
 import { 
   LayoutDashboard, 
+  Package, 
+  FolderTree, 
   Boxes, 
-  Search, 
-  MapPin, 
   Layers, 
-  AlertTriangle, 
   Truck, 
   ClipboardList, 
   Receipt, 
   BarChart3, 
-  Database,
+  Sparkles,
   ChevronRight,
-  Package
+  Database,
+  X
 } from 'lucide-react';
-import { getUseMockData } from '../../services/api/apiClient';
 
-export default function Sidebar({ currentView, onSelectView, alertCount = 5, onOpenInspector }) {
-  const isMock = getUseMockData();
-
+export default function Sidebar({ currentView, onSelectView, isOpen, onClose }) {
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard Overview', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'products', label: 'Products', icon: Package },
+    { id: 'categories', label: 'Categories', icon: FolderTree },
     { id: 'inventory', label: 'Store Inventory', icon: Boxes },
-    { id: 'products', label: 'Product Catalog', icon: Search },
-    { id: 'locations', label: 'Rack Location Finder', icon: MapPin, highlight: 'VIEW: product_location' },
     { id: 'racks', label: 'Racks & Shelves', icon: Layers },
-    { id: 'low-stock', label: 'Low-Stock Alerts', icon: AlertTriangle, badge: alertCount, badgeColor: 'bg-rose-500/20 text-rose-400' },
-    { id: 'suppliers', label: 'Suppliers Directory', icon: Truck },
+    { id: 'suppliers', label: 'Suppliers', icon: Truck },
     { id: 'purchase-orders', label: 'Purchase Orders', icon: ClipboardList },
-    { id: 'sales', label: 'Sales & Billing POS', icon: Receipt },
-    { id: 'reports', label: 'Reports & Analytics', icon: BarChart3 },
-    { id: 'sql-hub', label: 'SQL & Query Hub', icon: Database, isDev: true },
+    { id: 'sales', label: 'Sales & POS', icon: Receipt },
+    { id: 'reports', label: 'Reports', icon: BarChart3 },
   ];
 
   return (
-    <aside className="w-full md:w-64 bg-dark-800 border-r border-slate-800/80 flex flex-col justify-between p-5 select-none shrink-0 z-20">
-      <div className="flex flex-col gap-6">
-        {/* Brand Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800/60">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/25">
-              <Package className="w-5 h-5" />
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          onClick={onClose}
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-30 md:hidden animate-fade-in"
+        />
+      )}
+
+      {/* Sidebar Content */}
+      <aside 
+        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200/90 flex flex-col justify-between p-4 select-none shrink-0 transition-transform duration-200 ease-in-out md:translate-x-0 ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        <div className="flex flex-col gap-6">
+          {/* Brand Header */}
+          <div className="flex items-center justify-between px-2 pt-1 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-600 via-teal-500 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-teal-500/20 font-bold">
+                <Package className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-sm font-extrabold tracking-tight text-slate-900 block leading-tight">
+                  RackMaster
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400 tracking-wide uppercase">
+                  Retail & Inventory
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-base font-black tracking-tight text-white block leading-tight">RackMaster</span>
-              <span className="text-[10px] font-semibold text-slate-400 tracking-wide">Retail Inventory & Racks</span>
-            </div>
+
+            {/* Mobile close button */}
+            <button 
+              onClick={onClose}
+              className="md:hidden w-7 h-7 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
+
+          {/* Navigation Items */}
+          <nav className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1">
+              Menu
+            </span>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onSelectView(item.id);
+                    if (onClose) onClose();
+                  }}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left ${
+                    isActive
+                      ? 'bg-gradient-to-r from-teal-50 to-sky-50/60 text-teal-800 border-l-2 border-teal-600 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-teal-600' : 'text-slate-400'}`} />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1">Navigation</span>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentView === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelectView(item.id)}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left ${
-                  isActive
-                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20'
-                    : 'text-slate-400 hover:text-white hover:bg-dark-700/80'
-                }`}
-              >
-                <div className="flex items-center gap-3 truncate">
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : item.isDev ? 'text-brand-400' : 'text-slate-400'}`} />
-                  <span className="truncate">{item.label}</span>
-                </div>
-
-                {item.badge !== undefined && item.badge > 0 && (
-                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${isActive ? 'bg-white text-brand-600' : item.badgeColor || 'bg-slate-700 text-slate-300'}`}>
-                    {item.badge}
-                  </span>
-                )}
-                {item.isDev && !isActive && (
-                  <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/30">
-                    SQL
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Database Integration Status pill (inspired by sowgandh.vercel.app) */}
-      <div className="border-t border-slate-800/80 pt-4 mt-6 flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Database Status</span>
-          <button 
-            onClick={onOpenInspector}
-            className="text-[10px] text-brand-400 hover:text-brand-300 underline font-semibold"
-          >
-            Inspect SQL
-          </button>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-dark-900 border border-slate-800 flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isMock ? 'bg-amber-400 animate-pulse' : 'bg-brand-500'}`}></span>
-            <span className="text-xs font-bold text-slate-200">
-              {isMock ? 'Mock Preview Mode' : 'Backend Connected'}
+        {/* Database Status Footer Card */}
+        <div className="border-t border-slate-100 pt-3 mt-4 flex flex-col gap-2">
+          <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Database</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200/80">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Connected
+              </span>
+            </div>
+            <span className="text-[11px] font-medium text-slate-600 truncate">
+              Supabase PostgreSQL
             </span>
           </div>
-          <span className="text-[10px] text-slate-400">
-            {isMock ? 'DB queries ready in /queries. Toggle mode anytime.' : 'Live API connected.'}
-          </span>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

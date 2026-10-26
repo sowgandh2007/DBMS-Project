@@ -7,15 +7,14 @@ import {
   Plus, 
   Minus, 
   Trash2, 
-  DollarSign, 
   CreditCard, 
   QrCode, 
   Banknote, 
   Activity, 
   CheckCircle2, 
   Code2, 
-  Eye, 
-  Clock 
+  TrendingUp,
+  Package
 } from 'lucide-react';
 import { getSalesLog, recordSale } from '../../services/salesService';
 import { getProducts } from '../../services/productService';
@@ -143,10 +142,9 @@ export default function SalesPOSView({ onOpenInspector }) {
     }
   };
 
-  // KPI calculations for Sales Log (inspired by sowgandh.vercel.app)
+  // KPI calculations for Sales Log
   const totalUnitsSold = salesLog.reduce((sum, s) => sum + (s.total_units_sold || 0), 0);
   const totalCostBasis = salesLog.reduce((sum, s) => sum + (s.total_cost_basis || 0), 0);
-  const totalGrossRevenue = salesLog.reduce((sum, s) => sum + (s.total_amount || 0), 0);
   const totalRealizedProfit = salesLog.reduce((sum, s) => sum + (s.realized_profit || 0), 0);
 
   const filteredCatalogForPOS = catalogProducts.filter(p => 
@@ -155,37 +153,38 @@ export default function SalesPOSView({ onOpenInspector }) {
   );
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-in">
+    <div className="flex flex-col gap-5 animate-fade-in">
       {/* Header with Tab switcher */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-white tracking-tight">Sales Counter & Billing POS</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Record customer sales, deduct shelf inventory, and track realized gross profits.</p>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Sales & Point of Sale</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Record customer sales, deduct shelf inventory, and track realized gross profits.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => onOpenInspector('sales')}
-            className="bg-dark-700 hover:bg-dark-600 text-slate-300 font-bold text-xs py-2 px-3 rounded-xl border border-slate-700 flex items-center gap-1.5 transition-all shadow-sm"
+            className="btn-secondary text-xs flex items-center gap-1.5"
+            title="Inspect SQL Query"
           >
-            <Code2 className="w-3.5 h-3.5 text-brand-400" />
+            <Code2 className="w-3.5 h-3.5 text-teal-600" />
             <span>SQL Query</span>
           </button>
-          <div className="flex items-center bg-dark-800 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               onClick={() => setActiveTab('log')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                activeTab === 'log' ? 'bg-brand-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'log' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Sales History Log
+              Sales Ledger
             </button>
             <button
               onClick={() => setActiveTab('pos')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                activeTab === 'pos' ? 'bg-brand-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'pos' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              New POS Sale
+              POS Register
             </button>
           </div>
         </div>
@@ -193,44 +192,44 @@ export default function SalesPOSView({ onOpenInspector }) {
 
       {activeTab === 'log' ? (
         <>
-          {/* Sales Summary Widgets (matching sowgandh.vercel.app sales log) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div className="glass-card rounded-2xl p-5 flex items-center justify-between glass-card-hover">
+          {/* Sales Summary Widgets */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="premium-card p-4 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Units Sold</span>
-                <div className="text-2xl font-black text-white mt-1">{totalUnitsSold}</div>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Total items checked out</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Units Sold</span>
+                <div className="text-2xl font-bold text-slate-900 mt-1">{totalUnitsSold}</div>
+                <span className="text-[11px] text-slate-400 mt-0.5 block">Total items billed</span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center border border-teal-500/20">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center border border-sky-200/60 shadow-xs">
                 <ShoppingCart className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="glass-card rounded-2xl p-5 flex items-center justify-between glass-card-hover">
+            <div className="premium-card p-4 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cost Basis</span>
-                <div className="text-2xl font-black text-white mt-1">₹{totalCostBasis.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Wholesale purchase value</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Cost Basis</span>
+                <div className="text-2xl font-bold text-slate-900 mt-1">₹{totalCostBasis.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                <span className="text-[11px] text-slate-400 mt-0.5 block">Wholesale purchase value</span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-200/60 shadow-xs">
                 <Activity className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="glass-card rounded-2xl p-5 flex items-center justify-between glass-card-hover">
+            <div className="premium-card p-4 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Net Profit Realized</span>
-                <div className="text-2xl font-black text-emerald-400 mt-1">₹{totalRealizedProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Gross sales margin booked</span>
+                <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Realized Gross Profit</span>
+                <div className="text-2xl font-bold text-emerald-700 mt-1">₹{totalRealizedProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                <span className="text-[11px] text-slate-400 mt-0.5 block">Gross sales margin booked</span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-                <DollarSign className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200/60 shadow-xs">
+                <TrendingUp className="w-5 h-5" />
               </div>
             </div>
           </div>
 
           {/* Filter Toolbar */}
-          <div className="glass-card rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch justify-between">
+          <div className="premium-card p-3.5 flex flex-col md:flex-row gap-3 items-stretch justify-between">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
@@ -238,7 +237,7 @@ export default function SalesPOSView({ onOpenInspector }) {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search receipt number or customer name..."
-                className="w-full pl-10 pr-4 py-2.5 bg-dark-700 border border-slate-700/80 focus:outline-none focus:border-brand-500 rounded-xl text-xs font-semibold text-white placeholder:text-slate-500"
+                className="form-input w-full pl-10 pr-4 py-2 text-xs"
               />
             </div>
 
@@ -246,7 +245,7 @@ export default function SalesPOSView({ onOpenInspector }) {
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
-                className="form-input text-white bg-dark-700 cursor-pointer w-auto"
+                className="form-input text-xs py-2 w-auto"
               >
                 <option value="ALL">All Payment Methods</option>
                 <option value="UPI">UPI</option>
@@ -259,7 +258,7 @@ export default function SalesPOSView({ onOpenInspector }) {
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
                 title="From Date"
-                className="form-input text-white bg-dark-700 w-auto text-xs"
+                className="form-input text-xs py-2 w-auto"
               />
 
               <input
@@ -267,50 +266,50 @@ export default function SalesPOSView({ onOpenInspector }) {
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
                 title="To Date"
-                className="form-input text-white bg-dark-700 w-auto text-xs"
+                className="form-input text-xs py-2 w-auto"
               />
             </div>
           </div>
 
           {/* Sales Log Table */}
-          <div className="glass-card rounded-2xl overflow-hidden border border-slate-800">
-            <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="premium-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-200/80 bg-slate-50/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-brand-500" />
-                <span className="text-xs font-bold text-white uppercase tracking-wider">Sales Ledger & Receipts</span>
+                <Receipt className="w-4 h-4 text-teal-600" />
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Sales Ledger & Receipts</span>
               </div>
-              <span className="text-xs text-slate-400 font-semibold">{salesLog.length} Transactions</span>
+              <span className="text-xs text-slate-500 font-medium">{salesLog.length} Transactions</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-dark-800 text-slate-400 font-bold border-b border-slate-800 uppercase tracking-wider select-none">
-                    <th className="p-4">Receipt & Customer</th>
-                    <th className="p-4">Date Sold</th>
-                    <th className="p-4 text-center">Payment</th>
-                    <th className="p-4 text-right">Cost Basis</th>
-                    <th className="p-4 text-right">Sold Total</th>
-                    <th className="p-4 text-right">Realized Profit</th>
-                    <th className="p-4 text-right">Action</th>
+                  <tr className="bg-slate-50/80 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider select-none">
+                    <th className="py-3 px-4">Receipt & Customer</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4 text-center">Payment</th>
+                    <th className="py-3 px-4 text-right">Cost Basis</th>
+                    <th className="py-3 px-4 text-right">Total (₹)</th>
+                    <th className="py-3 px-4 text-right">Profit</th>
+                    <th className="py-3 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/50 bg-dark-900/30">
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {loading ? (
                     <tr>
-                      <td colSpan="7" className="p-8 text-center text-slate-400">
+                      <td colSpan="7" className="p-8 text-center text-slate-500">
                         <div className="flex items-center justify-center gap-2">
-                          <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                          <span>Fetching transactions from Supabase...</span>
+                          <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                          <span>Fetching transactions...</span>
                         </div>
                       </td>
                     </tr>
                   ) : error ? (
                     <tr>
                       <td colSpan="7" className="p-8 text-center">
-                        <div className="flex flex-col items-center justify-center gap-2 text-rose-400">
-                          <span className="font-bold">{error}</span>
-                          <button onClick={loadSales} className="mt-2 px-3 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded text-xs font-semibold">
+                        <div className="flex flex-col items-center justify-center gap-2 text-rose-600">
+                          <span className="font-semibold">{error}</span>
+                          <button onClick={loadSales} className="mt-2 btn-secondary text-xs">
                             Retry
                           </button>
                         </div>
@@ -318,38 +317,38 @@ export default function SalesPOSView({ onOpenInspector }) {
                     </tr>
                   ) : salesLog.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="p-8 text-center text-slate-500 italic">
+                      <td colSpan="7" className="p-8 text-center text-slate-400 italic">
                         No recorded sales matched the selected filters.
                       </td>
                     </tr>
                   ) : (
                     salesLog.map((sale) => (
-                      <tr key={sale.sale_id} className="hover:bg-dark-700/30 transition-colors">
-                        <td className="p-4">
-                          <div className="font-bold text-white font-mono text-xs">{sale.receipt_number}</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">{sale.customer_name} • {sale.total_units_sold} units</div>
+                      <tr key={sale.sale_id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="font-bold text-slate-900 font-mono text-xs">{sale.receipt_number}</div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">{sale.customer_name} • {sale.total_units_sold} units</div>
                         </td>
-                        <td className="p-4 text-slate-400 font-mono text-[11px]">{sale.sale_date}</td>
-                        <td className="p-4 text-center">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-dark-700 text-slate-300 border border-slate-700">
+                        <td className="py-3 px-4 text-slate-600 font-mono text-xs">{sale.sale_date}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                             {sale.payment_method}
                           </span>
                         </td>
-                        <td className="p-4 text-right font-mono text-slate-400">
+                        <td className="py-3 px-4 text-right font-mono text-slate-600">
                           ₹{sale.total_cost_basis.toFixed(2)}
                         </td>
-                        <td className="p-4 text-right font-mono font-bold text-white">
+                        <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">
                           ₹{sale.total_amount.toFixed(2)}
                         </td>
-                        <td className="p-4 text-right">
-                          <span className="font-mono font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[11px]">
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded text-[11px]">
                             +₹{sale.realized_profit.toFixed(2)}
                           </span>
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="py-3 px-4 text-right">
                           <button
                             onClick={() => setSelectedReceipt(sale)}
-                            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-dark-700 hover:bg-dark-600 text-brand-400 hover:text-brand-300 transition-colors border border-slate-700"
+                            className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-700 transition-colors border border-slate-200"
                           >
                             Receipt
                           </button>
@@ -364,7 +363,7 @@ export default function SalesPOSView({ onOpenInspector }) {
         </>
       ) : (
         /* POS Terminal View */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Catalog Selection (Left 7 cols) */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             <div className="relative">
@@ -373,14 +372,14 @@ export default function SalesPOSView({ onOpenInspector }) {
                 type="text"
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                placeholder="Scan barcode or type product name..."
-                className="w-full pl-10 pr-4 py-2.5 bg-dark-700 border border-slate-700/80 focus:outline-none focus:border-brand-500 rounded-xl text-xs font-semibold text-white placeholder:text-slate-500"
+                placeholder="Search products by SKU or name to add..."
+                className="form-input w-full pl-10 pr-4 py-2 text-xs"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[520px] overflow-y-auto pr-1">
               {filteredCatalogForPOS.length === 0 ? (
-                <div className="col-span-2 text-center py-10 text-slate-500 text-xs italic">
+                <div className="col-span-2 text-center py-12 text-slate-400 text-xs italic">
                   {catalogProducts.length === 0 ? 'No products in database catalog.' : 'No products matched your search.'}
                 </div>
               ) : (
@@ -393,20 +392,20 @@ export default function SalesPOSView({ onOpenInspector }) {
                     <div
                       key={p.product_id}
                       onClick={() => !isOutOfStock && handleAddToCart(p)}
-                      className={`glass-card rounded-xl p-3.5 flex flex-col justify-between gap-2 border transition-all ${
+                      className={`premium-card p-3.5 flex flex-col justify-between gap-2.5 transition-all ${
                         isOutOfStock
-                          ? 'opacity-50 cursor-not-allowed border-rose-500/30'
-                          : 'cursor-pointer hover:border-brand-500/50 hover:bg-dark-800'
+                          ? 'opacity-60 cursor-not-allowed bg-slate-50 border-rose-200'
+                          : 'cursor-pointer hover:border-teal-500 hover:shadow-card'
                       }`}
                     >
                       <div>
-                        <div className="font-bold text-white text-xs truncate">{p.product_name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono">{p.sku}</div>
+                        <div className="font-bold text-slate-900 text-xs truncate">{p.product_name}</div>
+                        <div className="text-[11px] text-slate-400 font-mono">{p.sku}</div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                        <span className="font-mono font-black text-brand-400 text-sm">₹{unitPrice.toFixed(2)}</span>
-                        <span className={`text-[10px] font-bold ${isOutOfStock ? 'text-rose-400' : 'text-slate-400'}`}>
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span className="font-mono font-bold text-teal-700 text-sm">₹{unitPrice.toFixed(2)}</span>
+                        <span className={`text-[11px] font-semibold ${isOutOfStock ? 'text-rose-600' : 'text-slate-500'}`}>
                           {isOutOfStock ? 'Out of Stock' : `${stockCount} in stock`}
                         </span>
                       </div>
@@ -419,19 +418,21 @@ export default function SalesPOSView({ onOpenInspector }) {
 
           {/* POS Cart & Checkout Drawer (Right 5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-4">
-            <div className="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col justify-between min-h-[500px]">
+            <div className="premium-card p-4 flex flex-col justify-between min-h-[520px]">
               <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                   <div className="flex items-center gap-2">
-                    <ShoppingCart className="w-4 h-4 text-brand-500" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">Current Cart</span>
+                    <ShoppingCart className="w-4 h-4 text-teal-600" />
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Current Cart</span>
                   </div>
-                  <span className="text-xs text-brand-400 font-bold">{cart.length} items</span>
+                  <span className="text-xs text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60">
+                    {cart.length} items
+                  </span>
                 </div>
 
                 {/* Customer name input */}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Customer / Member</label>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Customer / Member</label>
                   <input
                     type="text"
                     value={customerName}
@@ -442,37 +443,38 @@ export default function SalesPOSView({ onOpenInspector }) {
                 </div>
 
                 {/* Cart items list */}
-                <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto">
+                <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
                   {cart.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic py-8 text-center">Cart is empty. Click items from catalog to add.</p>
+                    <p className="text-xs text-slate-400 italic py-10 text-center">Cart is empty. Click items from catalog to add.</p>
                   ) : (
                     cart.map((item) => (
-                      <div key={item.product_id} className="p-2 rounded-xl bg-dark-700/60 border border-slate-700/50 flex items-center justify-between text-xs">
+                      <div key={item.product_id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                         <div className="flex-1 truncate pr-2">
-                          <div className="font-semibold text-white truncate">{item.product_name}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">₹{item.unit_price} each</div>
+                          <div className="font-semibold text-slate-800 truncate">{item.product_name}</div>
+                          <div className="text-[11px] text-slate-500 font-mono">₹{item.unit_price} each</div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
                             onClick={() => handleUpdateQty(item.product_id, -1)}
-                            className="w-6 h-6 rounded-lg bg-dark-600 hover:bg-dark-500 text-slate-300 flex items-center justify-center font-bold"
+                            className="w-6 h-6 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="font-bold text-white font-mono w-4 text-center">{item.quantity}</span>
+                          <span className="font-bold text-slate-900 font-mono w-5 text-center">{item.quantity}</span>
                           <button
                             type="button"
                             onClick={() => handleUpdateQty(item.product_id, 1)}
-                            className="w-6 h-6 rounded-lg bg-dark-600 hover:bg-dark-500 text-slate-300 flex items-center justify-center font-bold"
+                            className="w-6 h-6 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold"
                           >
                             <Plus className="w-3 h-3" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleRemoveFromCart(item.product_id)}
-                            className="text-slate-500 hover:text-rose-400 ml-1"
+                            className="text-slate-400 hover:text-rose-600 ml-1 transition-colors"
+                            title="Remove item"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -484,17 +486,17 @@ export default function SalesPOSView({ onOpenInspector }) {
               </div>
 
               {/* Checkout Summary & Payment */}
-              <div className="flex flex-col gap-3 pt-4 border-t border-slate-800 mt-4">
-                <div className="flex flex-col gap-1 text-xs">
-                  <div className="flex justify-between text-slate-400">
+              <div className="flex flex-col gap-3 pt-3 border-t border-slate-200 mt-4">
+                <div className="flex flex-col gap-1.5 text-xs">
+                  <div className="flex justify-between text-slate-500">
                     <span>Subtotal:</span>
-                    <span className="font-mono">₹{subtotal.toFixed(2)}</span>
+                    <span className="font-mono text-slate-700">₹{subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>GST Tax (5%):</span>
-                    <span className="font-mono">₹{tax.toFixed(2)}</span>
+                  <div className="flex justify-between text-slate-500">
+                    <span>GST (5%):</span>
+                    <span className="font-mono text-slate-700">₹{tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-400 items-center">
+                  <div className="flex justify-between text-slate-500 items-center">
                     <span>Discount (₹):</span>
                     <input
                       type="number"
@@ -504,9 +506,9 @@ export default function SalesPOSView({ onOpenInspector }) {
                       placeholder="0.00"
                     />
                   </div>
-                  <div className="flex justify-between text-white font-bold text-sm pt-2 border-t border-slate-800">
+                  <div className="flex justify-between text-slate-900 font-bold text-sm pt-2 border-t border-slate-200">
                     <span>Total Due:</span>
-                    <span className="text-brand-400 font-mono text-base font-black">₹{total.toFixed(2)}</span>
+                    <span className="text-teal-700 font-mono text-base font-bold">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -523,10 +525,10 @@ export default function SalesPOSView({ onOpenInspector }) {
                         key={m.id}
                         type="button"
                         onClick={() => setPosPaymentMethod(m.id)}
-                        className={`p-2 rounded-xl border flex flex-col items-center gap-1 text-[11px] font-bold transition-colors ${
+                        className={`p-2 rounded-xl border flex flex-col items-center gap-1 text-[11px] font-semibold transition-all ${
                           posPaymentMethod === m.id
-                            ? 'bg-brand-500/20 text-brand-400 border-brand-500/50'
-                            : 'bg-dark-700/60 border-slate-800 text-slate-400 hover:text-white'
+                            ? 'bg-teal-50 text-teal-800 border-teal-500 shadow-xs'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
@@ -539,7 +541,7 @@ export default function SalesPOSView({ onOpenInspector }) {
                 <button
                   onClick={handleCheckout}
                   disabled={cart.length === 0}
-                  className="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs shadow-md shadow-brand-500/20 transition-all flex items-center justify-center gap-2"
+                  className="btn-primary w-full py-2.5 rounded-xl text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Complete Checkout (₹{total.toFixed(2)})</span>
@@ -560,45 +562,45 @@ export default function SalesPOSView({ onOpenInspector }) {
       >
         {selectedReceipt && (
           <div className="flex flex-col gap-4 text-xs font-mono">
-            <div className="p-3 bg-dark-800 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
               <div>
-                <span className="text-slate-400 text-[10px] block">Customer</span>
-                <span className="font-bold text-white">{selectedReceipt.customer_name}</span>
+                <span className="text-slate-500 text-[10px] block font-sans">Customer</span>
+                <span className="font-bold text-slate-900">{selectedReceipt.customer_name}</span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] block text-right">Payment</span>
-                <span className="font-bold text-brand-400 text-right block">{selectedReceipt.payment_method}</span>
+                <span className="text-slate-500 text-[10px] block text-right font-sans">Payment</span>
+                <span className="font-bold text-teal-700 text-right block">{selectedReceipt.payment_method}</span>
               </div>
             </div>
 
             {/* Line items */}
-            <div className="divide-y divide-slate-800/80 border-y border-slate-800 py-2">
+            <div className="divide-y divide-slate-100 border-y border-slate-200 py-2">
               {selectedReceipt.items?.map((item, idx) => (
                 <div key={idx} className="py-2 flex justify-between items-center text-xs">
                   <div>
-                    <span className="text-white font-bold block">{item.product_name}</span>
-                    <span className="text-slate-500 text-[10px]">{item.quantity} x ₹{item.unit_price} (Picked: {item.shelf_code})</span>
+                    <span className="text-slate-900 font-bold block">{item.product_name}</span>
+                    <span className="text-slate-500 text-[10px]">{item.quantity} x ₹{item.unit_price} (Rack: {item.shelf_code})</span>
                   </div>
-                  <span className="text-white font-bold">₹{(item.quantity * item.unit_price).toFixed(2)}</span>
+                  <span className="text-slate-900 font-bold">₹{(item.quantity * item.unit_price).toFixed(2)}</span>
                 </div>
               ))}
             </div>
 
             {/* Totals */}
             <div className="flex flex-col gap-1 text-xs">
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-slate-500">
                 <span>Subtotal:</span>
                 <span>₹{selectedReceipt.subtotal?.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-slate-500">
                 <span>Tax:</span>
                 <span>₹{selectedReceipt.tax_amount?.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-white font-black text-sm pt-2 border-t border-slate-800">
+              <div className="flex justify-between text-slate-900 font-bold text-sm pt-2 border-t border-slate-200">
                 <span>Grand Total:</span>
-                <span className="text-brand-400">₹{selectedReceipt.total_amount?.toFixed(2)}</span>
+                <span className="text-teal-700">₹{selectedReceipt.total_amount?.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-emerald-400 text-[11px] font-bold pt-1">
+              <div className="flex justify-between text-emerald-700 text-[11px] font-bold pt-1">
                 <span>Realized Gross Profit:</span>
                 <span>+₹{selectedReceipt.realized_profit?.toFixed(2)}</span>
               </div>
@@ -606,7 +608,7 @@ export default function SalesPOSView({ onOpenInspector }) {
 
             <button
               onClick={() => setSelectedReceipt(null)}
-              className="mt-2 w-full py-2 bg-dark-700 hover:bg-dark-600 text-slate-200 rounded-xl font-bold text-xs transition-colors"
+              className="mt-2 btn-secondary w-full py-2 text-xs font-semibold"
             >
               Close Receipt
             </button>

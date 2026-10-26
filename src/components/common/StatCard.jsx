@@ -5,62 +5,67 @@ export default function StatCard({
   value, 
   subtitle, 
   icon: Icon, 
-  color = 'indigo', 
+  color = 'teal', 
   trend,
   className = '' 
 }) {
   const colorMap = {
-    indigo: {
-      bg: 'bg-indigo-500/10',
-      text: 'text-indigo-400',
-      border: 'border-indigo-500/20'
+    teal: {
+      bg: 'bg-teal-50',
+      text: 'text-teal-600',
+      border: 'border-teal-100'
+    },
+    sky: {
+      bg: 'bg-sky-50',
+      text: 'text-sky-600',
+      border: 'border-sky-100'
+    },
+    lavender: {
+      bg: 'bg-purple-50',
+      text: 'text-purple-600',
+      border: 'border-purple-100'
     },
     emerald: {
-      bg: 'bg-emerald-500/10',
-      text: 'text-emerald-400',
-      border: 'border-emerald-500/20'
-    },
-    brand: {
-      bg: 'bg-brand-500/10',
-      text: 'text-brand-400',
-      border: 'border-brand-500/20'
-    },
-    teal: {
-      bg: 'bg-teal-500/10',
-      text: 'text-teal-400',
-      border: 'border-teal-500/20'
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-600',
+      border: 'border-emerald-100'
     },
     amber: {
-      bg: 'bg-amber-500/10',
-      text: 'text-amber-400',
-      border: 'border-amber-500/20'
+      bg: 'bg-amber-50',
+      text: 'text-amber-600',
+      border: 'border-amber-100'
     },
     rose: {
-      bg: 'bg-rose-500/10',
-      text: 'text-rose-400',
-      border: 'border-rose-500/20'
+      bg: 'bg-rose-50',
+      text: 'text-rose-600',
+      border: 'border-rose-100'
     },
+    peach: {
+      bg: 'bg-orange-50',
+      text: 'text-orange-600',
+      border: 'border-orange-100'
+    }
   };
 
-  const scheme = colorMap[color] || colorMap.indigo;
+  const scheme = colorMap[color] || colorMap.teal;
 
   return (
-    <div className={`glass-card rounded-2xl p-5 flex flex-col justify-between glass-card-hover ${className}`}>
-      <div className="flex items-center justify-between text-slate-400 mb-3">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{title}</span>
+    <div className={`premium-card rounded-2xl p-5 flex flex-col justify-between premium-card-hover ${className}`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</span>
         {Icon && (
-          <div className={`w-9 h-9 rounded-xl ${scheme.bg} ${scheme.text} flex items-center justify-center border ${scheme.border}`}>
+          <div className={`w-9 h-9 rounded-xl ${scheme.bg} ${scheme.text} flex items-center justify-center border ${scheme.border} shadow-sm`}>
             <Icon className="w-4 h-4" />
           </div>
         )}
       </div>
 
-      <div className="text-2xl font-black text-white tracking-tight">{value}</div>
+      <div className="text-2xl font-black text-slate-900 tracking-tight font-mono">{value}</div>
 
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/60">
-        <span className="text-[11px] text-slate-400">{subtitle}</span>
+      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 text-xs">
+        <span className="text-[11px] text-slate-500 font-medium">{subtitle}</span>
         {trend && (
-          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-md">
             {trend}
           </span>
         )}
