@@ -46,6 +46,7 @@ def create_app():
     app.register_blueprint(products_bp, url_prefix='/api/products')
     app.register_blueprint(categories_bp, url_prefix='/api/categories')
     app.register_blueprint(inventory_bp, url_prefix='/api/inventory')
+    app.register_blueprint(inventory_bp, url_prefix='/api/locations', name='locations_alias')
     app.register_blueprint(inventory_bp, url_prefix='/api/alerts', name='alerts_alias')
     app.register_blueprint(purchases_bp, url_prefix='/api/purchases')
     app.register_blueprint(purchases_bp, url_prefix='/api/purchase-orders', name='purchase_orders_alias')

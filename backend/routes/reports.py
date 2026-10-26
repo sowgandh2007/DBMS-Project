@@ -13,13 +13,15 @@ from services.query_service import (
     get_stock_value_by_category,
     get_purchase_order_summary,
     get_sales_summary,
-    get_supplier_products
+    get_supplier_products,
+    get_low_stock_products
 )
 
 logger = logging.getLogger(__name__)
 reports_bp = Blueprint('reports', __name__)
 
 @reports_bp.route('/stock-value', methods=['GET'])
+@reports_bp.route('/category-valuation', methods=['GET'])
 def get_stock_value():
     """
     GET /api/reports/stock-value
@@ -108,13 +110,15 @@ def get_purchases_report():
         }), 500
 
 @reports_bp.route('/sales', methods=['GET'])
+@reports_bp.route('/turnover', methods=['GET'])
 def get_sales_report():
     """
-    GET /api/reports/sales
+    GET /api/reports/sales or GET /api/reports/turnover
     Executes 06_sales_summary.sql
     """
     try:
-        group_by = request.args.get('group_by') or request.args.get('type') or 'date'
+        default_group = 'product' if request.path.endswith('/turnover') else 'date'
+        group_by = request.args.get('group_by') or request.args.get('type') or default_group
         start_date = request.args.get('start_date') or request.args.get('from_date')
         end_date = request.args.get('end_date') or request.args.get('to_date')
         
@@ -189,3 +193,28 @@ def get_suppliers_report():
             'error': 'Query Execution Error',
             'message': 'Failed to execute supplier products query.'
         }), 500
+
+@reports_bp.route('/low-stock', methods=['GET'])
+def get_reports_low_stock():
+    """
+    GET /api/reports/low-stock
+    Executes 02_low_stock.sql
+    """
+    try:
+        include_inactive_param = request.args.get('include_inactive', 'false').lower()
+        include_inactive = include_inactive_param in ('true', '1', 'yes')
+        results = get_low_stock_products(include_inactive=include_inactive)
+        return jsonify({
+            'success': True,
+            'count': len(results),
+            'filters': {'include_inactive': include_inactive},
+            'data': results
+        }), 200
+    except Exception as e:
+        logger.error(f"Error executing reports low stock: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Query Execution Error',
+            'message': str(e)
+        }), 500
+

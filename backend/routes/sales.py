@@ -73,7 +73,7 @@ def get_sales_report():
 def get_sales_history():
     """
     GET /api/sales/history
-    Fetch list of recent sales orders with item breakdown for POS audit log.
+    Fetch list of recent sales orders with item breakdown for POS sales ledger.
     """
     try:
         limit = int(request.args.get('limit', 50))

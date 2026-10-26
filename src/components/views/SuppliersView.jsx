@@ -328,17 +328,10 @@ export default function SuppliersView({ onOpenInspector, onNewPOForSupplier }) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60">
-                <button
-                  onClick={() => handleOpenProducts(s)}
-                  className="flex-1 py-2 text-xs font-bold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-300 hover:text-white transition-colors border border-slate-700 flex items-center justify-center gap-1.5"
-                >
-                  <Eye className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>View Products</span>
-                </button>
+              <div className="pt-2 border-t border-slate-800/60">
                 <button
                   onClick={() => onNewPOForSupplier && onNewPOForSupplier(s)}
-                  className="flex-1 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm flex items-center justify-center gap-1.5"
+                  className="w-full py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm flex items-center justify-center gap-1.5"
                 >
                   <ClipboardList className="w-3.5 h-3.5" />
                   <span>Create PO</span>
@@ -466,7 +459,7 @@ export default function SuppliersView({ onOpenInspector, onNewPOForSupplier }) {
                 Vendor ID: #{deleteTarget?.supplier_id} | Email: {deleteTarget?.email}
               </p>
               <p className="text-slate-400 mt-2">
-                Suppliers referenced in existing purchase orders cannot be deleted because historic procurement audit trails must be preserved.
+                Suppliers referenced in existing purchase orders cannot be deleted because historic procurement records must be preserved.
               </p>
             </div>
           </div>

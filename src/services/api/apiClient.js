@@ -4,10 +4,10 @@
 // =============================================================================
 
 export const API_CONFIG = {
-  // Python Flask backend URL
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  USE_MOCK_DATA: false, // Default to attempting live backend API first
-  TIMEOUT_MS: 8000,
+  // Python Flask backend URL pointing to local server or proxy
+  BASE_URL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api',
+  USE_MOCK_DATA: false, // Always prioritize and use live Supabase PostgreSQL backend
+  TIMEOUT_MS: 10000,
 };
 
 // Global toggle for mock mode vs live backend mode

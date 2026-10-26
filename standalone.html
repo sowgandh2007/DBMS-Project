@@ -385,7 +385,7 @@
                 <i data-lucide="clock" class="w-4 h-4 text-brand-600"></i>
                 <span class="text-xs font-bold text-slate-900 uppercase tracking-wider">Live Inventory Activity</span>
               </div>
-              <span class="text-xs text-slate-400">Audit ledger</span>
+              <span class="text-xs text-slate-400">Activity ledger</span>
             </div>
             <div class="flex flex-col gap-2.5" id="activity-list-container"></div>
           </div>
@@ -658,7 +658,7 @@
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Sales Counter & Billing POS</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Record customer sales, update inventory counts, and audit performance via <code class="text-brand-700 font-mono font-bold">06_sales_summary.sql</code>.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Record customer sales, update inventory counts, and track margins via <code class="text-brand-700 font-mono font-bold">06_sales_summary.sql</code>.</p>
           </div>
           <button onclick="openInspector('06_sales_summary.sql')" class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all shadow-sm">
             <i data-lucide="code-2" class="w-3.5 h-3.5 text-brand-600"></i>
@@ -720,10 +720,10 @@
           </div>
         </div>
 
-        <!-- Sales Audit Log -->
+        <!-- Sales Transaction Log -->
         <div class="premium-card rounded-2xl overflow-hidden mt-2">
           <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Sales Audit Ledger (sales_order)</span>
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Sales Transaction Ledger (sales_order)</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
@@ -1372,7 +1372,7 @@ ORDER BY p.unit_price DESC;`
         'low-stock': ['Low-Stock Alerts & Triggers', 'Threshold monitoring and shortfall calculation via 02_low_stock.sql.', '02_low_stock.sql'],
         'suppliers': ['Suppliers Directory', 'Vendor contacts, procurement spend, and items via 07_supplier_products.sql.', '07_supplier_products.sql'],
         'purchase-orders': ['Purchase Orders & Receiving', 'Procurement workflows and receiving shipments via 05_purchase_order_summary.sql.', '05_purchase_order_summary.sql'],
-        'sales': ['Sales Counter & POS Terminal', 'Point-of-sale checkout and realized profit audit log.', '06_sales_summary.sql'],
+        'sales': ['Sales Counter & POS Terminal', 'Point-of-sale checkout and transactions ledger.', '06_sales_summary.sql'],
         'reports': ['Reports & Business Analytics', 'Category valuation (HAVING/AGGREGATES) and sales summaries.', '04_stock_value_by_category.sql'],
         'sql-hub': ['Database & SQL Query Hub', 'Interactive explorer of all 11 parameterized SQL query files.', '01_product_search.sql']
       };

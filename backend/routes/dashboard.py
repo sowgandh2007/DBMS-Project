@@ -7,6 +7,7 @@ Uses the canonical views product_stock and product_location.
 import logging
 from flask import Blueprint, jsonify
 from db import get_db_cursor, serialize_rows
+from services.query_service import get_stock_value_by_category
 
 logger = logging.getLogger(__name__)
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -117,6 +118,27 @@ def get_margin_chart():
             }), 200
     except Exception as e:
         logger.error(f"Error fetching margin chart data: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Database Error',
+            'message': str(e)
+        }), 500
+
+@dashboard_bp.route('/category-values', methods=['GET'])
+def get_category_values():
+    """
+    GET /api/dashboard/category-values
+    Returns stock value grouped by category.
+    """
+    try:
+        results = get_stock_value_by_category(include_inactive=False)
+        return jsonify({
+            'success': True,
+            'count': len(results),
+            'data': results
+        }), 200
+    except Exception as e:
+        logger.error(f"Error fetching category values: {str(e)}")
         return jsonify({
             'success': False,
             'error': 'Database Error',

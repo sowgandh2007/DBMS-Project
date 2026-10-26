@@ -10,7 +10,8 @@ from flask import Blueprint, request, jsonify
 from services.query_service import (
     get_current_stock_location,
     get_low_stock_products,
-    get_racks_and_shelves
+    get_racks_and_shelves,
+    update_product
 )
 
 logger = logging.getLogger(__name__)
@@ -113,3 +114,43 @@ def get_racks():
             'error': 'Database Error',
             'message': str(e)
         }), 500
+
+@inventory_bp.route('/move', methods=['POST'])
+@inventory_bp.route('/locations/move', methods=['POST'])
+def move_product_shelf():
+    """
+    POST /api/inventory/locations/move or POST /api/inventory/move
+    Reassigns a product to a target shelf.
+    """
+    try:
+        data = request.get_json() or {}
+        product_id = data.get('placement_id') or data.get('product_id')
+        shelf_id = data.get('new_shelf_id') or data.get('shelf_id')
+        
+        if not product_id or not shelf_id:
+            return jsonify({
+                'success': False,
+                'error': 'Validation Error',
+                'message': 'Both product_id and new_shelf_id are required.'
+            }), 400
+            
+        updated = update_product(int(product_id), {'shelf_id': int(shelf_id)})
+        return jsonify({
+            'success': True,
+            'message': 'Product shelf location reassigned successfully.',
+            'data': updated
+        }), 200
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': 'Validation Error',
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        logger.error(f"Error moving product shelf: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Database Error',
+            'message': str(e)
+        }), 500
+

@@ -78,19 +78,17 @@ export async function getRackShelves(rackId) {
     const res = await apiRequest('/inventory/racks');
     if (res && res.data) {
       const rackShelves = res.data.filter(sh => sh.rack_id === rackId && sh.shelf_id);
-      if (rackShelves.length > 0) {
-        return rackShelves.map(sh => ({
-          shelf_id: sh.shelf_id,
-          rack_id: sh.rack_id,
-          shelf_number: sh.shelf_number,
-          shelf_code: `${sh.rack_code}-${String(sh.shelf_number).padStart(2, '0')}`,
-          max_capacity: 100,
-          current_quantity: 25,
-          shelf_occupancy_pct: '25.0',
-          items: [],
-          _is_live: true
-        }));
-      }
+      return rackShelves.map(sh => ({
+        shelf_id: sh.shelf_id,
+        rack_id: sh.rack_id,
+        shelf_number: sh.shelf_number,
+        shelf_code: `${sh.rack_code}-${String(sh.shelf_number).padStart(2, '0')}`,
+        max_capacity: 100,
+        current_quantity: 25,
+        shelf_occupancy_pct: '25.0',
+        items: [],
+        _is_live: true
+      }));
     }
     throw new Error(res.message || "Failed to load shelves from database.");
   }

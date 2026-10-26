@@ -14,6 +14,7 @@ Endpoints:
 
 import logging
 from flask import Blueprint, request, jsonify
+from db import get_db_cursor, serialize_rows
 from services.query_service import (
     get_racks_and_shelves,
     create_rack,
@@ -101,6 +102,26 @@ def remove_rack(rack_id):
         return jsonify({'success': False, 'error': 'Database Error', 'message': str(e)}), 500
 
 # --- SHELF ENDPOINTS ---
+
+@shelves_bp.route('', methods=['GET'])
+def list_shelves():
+    """GET /api/shelves - List all shelves."""
+    try:
+        with get_db_cursor(commit=False) as cursor:
+            cursor.execute("""
+                SELECT s.shelf_id, s.shelf_number, s.rack_id, r.rack_code, r.aisle,
+                       COUNT(p.product_id) AS product_count
+                FROM shelf s
+                JOIN rack r ON r.rack_id = s.rack_id
+                LEFT JOIN product p ON p.shelf_id = s.shelf_id AND p.is_active = TRUE
+                GROUP BY s.shelf_id, s.shelf_number, s.rack_id, r.rack_code, r.aisle
+                ORDER BY r.rack_code, s.shelf_number;
+            """)
+            shelves = cursor.fetchall()
+            return jsonify({'success': True, 'count': len(shelves), 'data': serialize_rows(shelves)}), 200
+    except Exception as e:
+        logger.error(f"Error listing shelves: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database Error', 'message': str(e)}), 500
 
 @shelves_bp.route('', methods=['POST'])
 def add_shelf():

@@ -512,13 +512,6 @@ export default function ProductSearchView({ onOpenInspector, onNavigateToLocatio
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => onNavigateToLocation && onNavigateToLocation(p.sku)}
-                          title="View Shelf Location"
-                          className="px-2 py-1 text-[11px] font-bold rounded-lg bg-dark-700 hover:bg-dark-600 text-brand-400 border border-slate-700"
-                        >
-                          Locate
-                        </button>
-                        <button
                           onClick={() => handleOpenEdit(p)}
                           title="Edit Product"
                           className="p-1.5 text-slate-300 hover:text-white bg-dark-700 hover:bg-slate-600 rounded-lg border border-slate-700 transition-colors"
@@ -766,7 +759,7 @@ export default function ProductSearchView({ onOpenInspector, onNavigateToLocatio
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         title="Confirm Product Deletion / Deactivation"
-        subtitle="Ensure database transaction integrity and audit safety."
+        subtitle="Ensure database transaction integrity."
       >
         <div className="flex flex-col gap-4 text-xs">
           <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start gap-3">
@@ -779,7 +772,7 @@ export default function ProductSearchView({ onOpenInspector, onNavigateToLocatio
                 SKU: <span className="font-mono text-slate-300 font-bold">{deleteTarget?.sku}</span> | Product ID: #{deleteTarget?.product_id}
               </p>
               <p className="text-slate-400 mt-2">
-                If this product has associated sales or purchase orders, PostgreSQL transaction rules will safely <strong>deactivate</strong> it instead of corrupting historical sales audits.
+                If this product has associated sales or purchase orders, PostgreSQL transaction rules will safely <strong>deactivate</strong> it instead of corrupting historical sales records.
               </p>
             </div>
           </div>

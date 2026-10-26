@@ -28,7 +28,6 @@ import {
 } from '../../services/purchaseOrderService';
 import { getSuppliers } from '../../services/supplierService';
 import { searchProducts } from '../../services/productService';
-import { MOCK_SUPPLIERS, MOCK_PRODUCT_STOCK, MOCK_SHELVES } from '../../data/mockData';
 
 export default function PurchaseOrdersView({ onOpenInspector, prefilledItem = null, prefilledSupplier = null }) {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
@@ -108,13 +107,13 @@ export default function PurchaseOrdersView({ onOpenInspector, prefilledItem = nu
   const loadReference = async () => {
     try {
       const [sups, prods] = await Promise.all([
-        getSuppliers().catch(() => MOCK_SUPPLIERS),
-        searchProducts().catch(() => MOCK_PRODUCT_STOCK)
+        getSuppliers(),
+        searchProducts()
       ]);
       setSuppliersList(sups || []);
       setProductsList(prods || []);
     } catch (err) {
-      console.warn(err);
+      console.warn("Error loading purchase order reference data:", err);
     }
   };
 

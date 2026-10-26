@@ -178,7 +178,7 @@ GROUP BY po.po_id, po.po_number, po.supplier_id, s.supplier_name, po.order_date,
       { field: 'Payment Method Filter', apiParam: 'payment_method', sqlParam: ':payment_method', type: 'Enum ("UPI", "CARD", "CASH")' },
       { field: 'From / To Date', apiParam: 'from_date / to_date', sqlParam: ':from_date / :to_date', type: 'Date' }
     ],
-    sqlSnippet: `-- Audit log with realized profit calculation (like sowgandh.vercel.app)
+    sqlSnippet: `-- Sales transactions with realized profit calculation
 SELECT 
     s.sale_id, s.receipt_number, s.sale_date, s.customer_name, s.payment_method,
     s.total_amount, COUNT(si.sale_item_id) AS total_items_count,

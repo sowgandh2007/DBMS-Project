@@ -38,7 +38,7 @@ export default function Header({ currentView, onOpenInspector, onQuickAction }) 
     'low-stock': { title: 'Low-Stock Alerts & Triggers', subtitle: 'Threshold monitoring and automated restocking suggestions' },
     'suppliers': { title: 'Suppliers Directory', subtitle: 'Vendor contacts, catalog items, and procurement spend' },
     'purchase-orders': { title: 'Purchase Orders & Receiving', subtitle: 'Procurement workflows and receiving shipments directly into racks' },
-    'sales': { title: 'Sales Counter & POS Terminal', subtitle: 'Point-of-sale checkout and realized profit audit log' },
+    'sales': { title: 'Sales Counter & POS Terminal', subtitle: 'Point-of-sale checkout and transactions ledger' },
     'reports': { title: 'Reports & Analytics', subtitle: 'Valuation, rack utilization, and turnover reports' },
     'sql-hub': { title: 'SQL & Database Query Hub', subtitle: 'Interactive reference of all SQL files in /queries and backend mapping' },
   };

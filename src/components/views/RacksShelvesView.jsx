@@ -24,6 +24,7 @@ import {
   updateRack,
   deleteRack,
   createShelf,
+  updateShelf,
   deleteShelf 
 } from '../../services/rackService';
 
@@ -46,6 +47,7 @@ export default function RacksShelvesView({ onOpenInspector }) {
   const [isEditRackOpen, setIsEditRackOpen] = useState(false);
   const [isDeleteRackOpen, setIsDeleteRackOpen] = useState(false);
   const [isAddShelfOpen, setIsAddShelfOpen] = useState(false);
+  const [isEditShelfOpen, setIsEditShelfOpen] = useState(false);
 
   // Forms
   const [newRackData, setNewRackData] = useState({
@@ -61,6 +63,10 @@ export default function RacksShelvesView({ onOpenInspector }) {
   });
 
   const [newShelfNumber, setNewShelfNumber] = useState('');
+  const [editShelfData, setEditShelfData] = useState({
+    shelf_id: null,
+    shelf_number: ''
+  });
 
   const notify = (msg, isErr = false) => {
     if (isErr) {
@@ -198,6 +204,32 @@ export default function RacksShelvesView({ onOpenInspector }) {
       handleSelectRack(selectedRack);
     } catch (err) {
       notify("Error adding shelf: " + err.message, true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenEditShelf = (shelf) => {
+    setEditShelfData({
+      shelf_id: shelf.shelf_id,
+      shelf_number: shelf.shelf_number
+    });
+    setIsEditShelfOpen(true);
+  };
+
+  const handleEditShelfSubmit = async (e) => {
+    e.preventDefault();
+    if (!editShelfData.shelf_id || !editShelfData.shelf_number.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await updateShelf(editShelfData.shelf_id, {
+        shelf_number: editShelfData.shelf_number.trim().toUpperCase()
+      });
+      setIsEditShelfOpen(false);
+      notify(`Shelf #${editShelfData.shelf_id} updated successfully!`);
+      handleSelectRack(selectedRack);
+    } catch (err) {
+      notify("Error updating shelf: " + err.message, true);
     } finally {
       setIsSubmitting(false);
     }
@@ -379,13 +411,22 @@ export default function RacksShelvesView({ onOpenInspector }) {
                         </span>
                       </div>
 
-                      <button
-                        onClick={() => handleDeleteShelf(sh)}
-                        title="Delete Shelf"
-                        className="p-1.5 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors border border-rose-500/20"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenEditShelf(sh)}
+                          title="Edit Shelf"
+                          className="p-1.5 text-slate-400 hover:text-white bg-dark-700 hover:bg-slate-600 rounded-lg transition-colors border border-slate-700"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteShelf(sh)}
+                          title="Delete Shelf"
+                          className="p-1.5 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors border border-rose-500/20"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}
@@ -588,6 +629,45 @@ export default function RacksShelvesView({ onOpenInspector }) {
               className="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md disabled:opacity-50"
             >
               {isSubmitting ? 'Adding...' : 'Add Shelf'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* --- EDIT SHELF MODAL --- */}
+      <Modal
+        isOpen={isEditShelfOpen}
+        onClose={() => setIsEditShelfOpen(false)}
+        title="Edit Shelf Tier"
+        subtitle="Update shelf identifier in Supabase PostgreSQL."
+      >
+        <form onSubmit={handleEditShelfSubmit} className="flex flex-col gap-4 text-xs">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Shelf Number / Code</label>
+            <input
+              type="text"
+              required
+              value={editShelfData.shelf_number}
+              onChange={(e) => setEditShelfData({ ...editShelfData, shelf_number: e.target.value.toUpperCase() })}
+              placeholder="e.g. S1"
+              className="form-input font-mono font-bold"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setIsEditShelfOpen(false)}
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md disabled:opacity-50"
+            >
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

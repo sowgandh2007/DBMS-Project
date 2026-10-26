@@ -277,7 +277,7 @@ export default function SalesPOSView({ onOpenInspector }) {
             <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-brand-500" />
-                <span className="text-xs font-bold text-white uppercase tracking-wider">Audit Log & Receipts</span>
+                <span className="text-xs font-bold text-white uppercase tracking-wider">Sales Ledger & Receipts</span>
               </div>
               <span className="text-xs text-slate-400 font-semibold">{salesLog.length} Transactions</span>
             </div>

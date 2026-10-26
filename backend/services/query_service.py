@@ -815,7 +815,7 @@ def delete_product(product_id: int, hard_delete: bool = False):
         has_history = (sales_cnt > 0 or po_cnt > 0)
         
         if hard_delete and has_history:
-            # Cannot hard delete due to foreign key references & fiscal audit integrity
+            # Cannot hard delete due to foreign key references & transaction consistency
             raise PermissionError(
                 f"Cannot permanently delete '{prod['product_name']}': it is referenced in {sales_cnt} sales line(s) and {po_cnt} purchase line(s). "
                 "The product has been deactivated instead to preserve inventory and transaction history."
@@ -958,6 +958,6 @@ def delete_sale_order(sale_id: int):
 
         raise PermissionError(
             f"Cannot delete completed sale #{sale_id}: sales orders represent confirmed transactions and stock-out history. "
-            "Deleting sales records directly alters stock calculations and fiscal audit integrity."
+            "Deleting sales records directly alters stock calculations and transaction history consistency."
         )
 
