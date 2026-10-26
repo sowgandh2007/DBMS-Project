@@ -8,7 +8,11 @@ Maps sales summaries and POS transactions to:
 import logging
 from flask import Blueprint, request, jsonify
 import psycopg2
-from services.query_service import get_sales_summary, create_sale_transaction
+from services.query_service import (
+    get_sales_summary,
+    create_sale_transaction,
+    delete_sale_order
+)
 from db import get_db_cursor, serialize_rows
 
 logger = logging.getLogger(__name__)
@@ -168,3 +172,20 @@ def record_sale():
             'error': 'Server Error',
             'message': 'Failed to process sale transaction.'
         }), 500
+
+@sales_bp.route('/<int:sale_id>', methods=['DELETE'])
+def remove_sale(sale_id):
+    """
+    DELETE /api/sales/<id>
+    SAFETY GUARD: Prevents accidental deletion of completed sales orders that would corrupt inventory accounting.
+    """
+    try:
+        delete_sale_order(sale_id)
+        return jsonify({'success': True, 'message': f"Sale #{sale_id} removed."}), 200
+    except ValueError as e:
+        return jsonify({'success': False, 'error': 'Not Found', 'message': str(e)}), 404
+    except PermissionError as e:
+        return jsonify({'success': False, 'error': 'Transaction Integrity Protection', 'message': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error deleting sale #{sale_id}: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database Error', 'message': str(e)}), 500

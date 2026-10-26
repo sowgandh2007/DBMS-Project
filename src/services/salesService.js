@@ -151,3 +151,16 @@ export async function recordSale(saleData) {
   MOCK_SALES_LOG.unshift(newSale);
   return { success: true, receipt: newSale };
 }
+
+/**
+ * Attempt to delete a sale order.
+ * Safety guard: Backend rejects deleting completed fiscal sales orders.
+ */
+export async function deleteSale(saleId) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/sales/${saleId}`, {
+      method: 'DELETE'
+    });
+  }
+  throw new Error(`Cannot delete completed sale #${saleId}: sales records represent confirmed transactions and stock-out history.`);
+}

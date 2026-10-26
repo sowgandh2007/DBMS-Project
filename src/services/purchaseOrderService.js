@@ -113,6 +113,51 @@ export async function createPurchaseOrder(poData) {
 }
 
 /**
+ * Update purchase order (e.g. status or supplier).
+ * Guarded against modifying received orders.
+ */
+export async function updatePurchaseOrder(poId, poData) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/purchases/${poId}`, {
+      method: 'PUT',
+      body: JSON.stringify(poData)
+    });
+  }
+
+  const idx = MOCK_PURCHASE_ORDERS.findIndex(p => p.po_id === poId);
+  if (idx !== -1) {
+    if (MOCK_PURCHASE_ORDERS[idx].status === 'Received' && poData.status && poData.status !== 'Received') {
+      throw new Error("Cannot modify a Received purchase order as stock was already credited to the store.");
+    }
+    MOCK_PURCHASE_ORDERS[idx] = { ...MOCK_PURCHASE_ORDERS[idx], ...poData };
+    return { success: true, data: MOCK_PURCHASE_ORDERS[idx] };
+  }
+  throw new Error(`Purchase order #${poId} not found.`);
+}
+
+/**
+ * Delete a purchase order.
+ * Strictly blocked if status is 'Received' to protect stock calculations.
+ */
+export async function deletePurchaseOrder(poId) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/purchases/${poId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  const idx = MOCK_PURCHASE_ORDERS.findIndex(p => p.po_id === poId);
+  if (idx !== -1) {
+    if (MOCK_PURCHASE_ORDERS[idx].status === 'Received') {
+      throw new Error("Cannot delete a Received purchase order: inventory items have already entered the store.");
+    }
+    MOCK_PURCHASE_ORDERS.splice(idx, 1);
+    return { success: true };
+  }
+  throw new Error(`Purchase order #${poId} not found.`);
+}
+
+/**
  * Receive items from a purchase order directly into target rack shelves.
  */
 export async function receiveShipment(poId, receivePayload) {

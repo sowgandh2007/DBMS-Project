@@ -7,7 +7,12 @@ Maps purchase order reporting and receiving to:
 
 import logging
 from flask import Blueprint, request, jsonify
-from services.query_service import get_purchase_order_summary
+from services.query_service import (
+    get_purchase_order_summary,
+    create_purchase_order,
+    update_purchase_order,
+    delete_purchase_order
+)
 from db import get_db_cursor
 
 logger = logging.getLogger(__name__)
@@ -106,3 +111,63 @@ def receive_purchase_order(po_id):
             'error': 'Database Error',
             'message': str(e)
         }), 500
+
+@purchases_bp.route('', methods=['POST'])
+def add_purchase_order():
+    """POST /api/purchases - Create a purchase order with line items in transaction."""
+    try:
+        data = request.get_json() or {}
+        new_po = create_purchase_order(data)
+        return jsonify({
+            'success': True,
+            'message': f"Purchase order #{new_po['po_id']} created successfully.",
+            'data': new_po
+        }), 201
+    except ValueError as e:
+        return jsonify({'success': False, 'error': 'Validation Error', 'message': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error creating purchase order: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database Error', 'message': str(e)}), 500
+
+@purchases_bp.route('/<int:po_id>', methods=['PUT', 'PATCH'])
+def edit_purchase_order(po_id):
+    """
+    PUT /api/purchases/<id> - Edit purchase order.
+    SAFETY GUARD: Prevents modifying an already 'Received' purchase order.
+    """
+    try:
+        data = request.get_json() or {}
+        updated = update_purchase_order(po_id, data)
+        return jsonify({
+            'success': True,
+            'message': f"Purchase order #{po_id} updated successfully.",
+            'data': updated
+        }), 200
+    except ValueError as e:
+        return jsonify({'success': False, 'error': 'Not Found', 'message': str(e)}), 404
+    except PermissionError as e:
+        return jsonify({'success': False, 'error': 'Safety Guard Violation', 'message': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error updating purchase order #{po_id}: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database Error', 'message': str(e)}), 500
+
+@purchases_bp.route('/<int:po_id>', methods=['DELETE'])
+def remove_purchase_order(po_id):
+    """
+    DELETE /api/purchases/<id> - Delete purchase order.
+    SAFETY GUARD: Prevents deleting a 'Received' order that would corrupt stock counts.
+    """
+    try:
+        deleted = delete_purchase_order(po_id)
+        return jsonify({
+            'success': True,
+            'message': f"Purchase order #{po_id} deleted successfully.",
+            'data': deleted
+        }), 200
+    except ValueError as e:
+        return jsonify({'success': False, 'error': 'Not Found', 'message': str(e)}), 404
+    except PermissionError as e:
+        return jsonify({'success': False, 'error': 'Safety Guard Violation', 'message': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error deleting purchase order #{po_id}: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database Error', 'message': str(e)}), 500

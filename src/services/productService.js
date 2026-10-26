@@ -133,18 +133,101 @@ export async function createProduct(productData) {
     product_id: Date.now(),
     sku: productData.sku || `SKU-MAN-${Math.floor(100 + Math.random() * 900)}`,
     product_name: productData.product_name,
-    category: productData.category,
+    category: productData.category || 'General',
     cost_price: parseFloat(productData.cost_price) || 0,
     unit_price: parseFloat(productData.unit_price) || 0,
-    min_stock_level: parseInt(productData.min_stock_level, 10) || 10,
+    reorder_level: parseInt(productData.reorder_level, 10) || 10,
     total_stock: 0,
     stock_status: 'OUT_OF_STOCK',
-    stock_deficit: parseInt(productData.min_stock_level, 10) || 10,
-    supplier_id: productData.supplier_id ? parseInt(productData.supplier_id, 10) : null,
-    supplier_name: productData.supplier_name || 'Assigned Supplier'
+    is_active: true
   };
   MOCK_PRODUCT_STOCK.unshift(newProduct);
-  return { success: true, product: newProduct };
+  return { success: true, data: newProduct };
+}
+
+/**
+ * Update an existing product in the database.
+ */
+export async function updateProduct(productId, productData) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData)
+    });
+  }
+
+  const idx = MOCK_PRODUCT_STOCK.findIndex(p => p.product_id === productId);
+  if (idx !== -1) {
+    MOCK_PRODUCT_STOCK[idx] = { ...MOCK_PRODUCT_STOCK[idx], ...productData };
+    return { success: true, data: MOCK_PRODUCT_STOCK[idx] };
+  }
+  throw new Error(`Product #${productId} not found.`);
+}
+
+/**
+ * Delete or deactivate a product.
+ */
+export async function deleteProduct(productId, hardDelete = false) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/products/${productId}?hard=${hardDelete}`, {
+      method: 'DELETE'
+    });
+  }
+
+  const idx = MOCK_PRODUCT_STOCK.findIndex(p => p.product_id === productId);
+  if (idx !== -1) {
+    if (hardDelete) {
+      MOCK_PRODUCT_STOCK.splice(idx, 1);
+    } else {
+      MOCK_PRODUCT_STOCK[idx].is_active = false;
+    }
+    return { success: true };
+  }
+  throw new Error(`Product #${productId} not found.`);
+}
+
+/**
+ * Category Management Functions
+ */
+export async function getCategories() {
+  if (!getUseMockData()) {
+    const res = await apiRequest('/categories');
+    return res.data || [];
+  }
+  return [
+    { category_id: 1, category_name: 'Electronics', product_count: 4 },
+    { category_id: 2, category_name: 'Stationery', product_count: 1 },
+    { category_id: 3, category_name: 'Furniture', product_count: 1 }
+  ];
+}
+
+export async function createCategory(categoryData) {
+  if (!getUseMockData()) {
+    return await apiRequest('/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData)
+    });
+  }
+  return { success: true, data: { category_id: Date.now(), ...categoryData } };
+}
+
+export async function updateCategory(categoryId, categoryData) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/categories/${categoryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData)
+    });
+  }
+  return { success: true, data: { category_id: categoryId, ...categoryData } };
+}
+
+export async function deleteCategory(categoryId) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/categories/${categoryId}`, {
+      method: 'DELETE'
+    });
+  }
+  return { success: true };
 }
 
 export const getProducts = searchProducts;

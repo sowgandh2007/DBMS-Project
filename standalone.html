@@ -1611,8 +1611,8 @@ ORDER BY p.unit_price DESC;`
           </div>
 
           <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-medium">Shelves S1, S2, S3</span>
-            <button onclick="switchView('locations')" class="text-brand-600 font-bold hover:underline">View Placements →</button>
+            <span class="text-slate-400 font-medium">Shelves S1, S2</span>
+            <button onclick="handleRackDelete(${r.rack_id})" class="text-rose-600 font-bold hover:text-rose-800 text-[11px]">Delete Rack</button>
           </div>
         </div>
       `).join('');
@@ -1666,6 +1666,10 @@ ORDER BY p.unit_price DESC;`
             <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/60"><span class="text-[9px] text-slate-400 font-bold block uppercase">ORDERS</span><span class="text-xs font-black text-slate-900">${s.orders}</span></div>
             <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/60"><span class="text-[9px] text-slate-400 font-bold block uppercase">SPEND</span><span class="text-xs font-black text-brand-700">${s.spend}</span></div>
           </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <button onclick="handleSupplierEdit(${s.id || s.supplier_id})" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">Edit Details</button>
+            <button onclick="handleSupplierDelete(${s.id || s.supplier_id})" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600">Delete</button>
+          </div>
         </div>
       `).join('');
     }
@@ -1683,7 +1687,10 @@ ORDER BY p.unit_price DESC;`
             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${po.status === 'Received' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (po.status === 'Ordered' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-rose-50 text-rose-700 border border-rose-200')}">${po.status}</span>
           </td>
           <td class="p-4 text-right">
-            <button onclick="openInspector('05_purchase_order_summary.sql')" class="text-xs text-brand-600 font-bold hover:underline">Inspect</button>
+            <div class="flex items-center justify-end gap-2">
+              ${po.status !== 'Received' ? `<button onclick="handlePOReceive(${po.po_id})" class="px-2 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">Receive</button>` : ''}
+              <button onclick="handlePODelete(${po.po_id})" class="text-xs text-rose-600 font-bold hover:underline">Delete</button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -2119,6 +2126,10 @@ ORDER BY p.unit_price DESC;`
           alert(`Success (DELETE)! Product #${productId} was deactivated in Supabase PostgreSQL!`);
           await fetchLiveData();
           return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert(`Cannot delete: ${errData.message || 'Dependency conflict'}`);
+          return;
         }
       } catch (err) {
         console.warn("API delete fallback:", err);
@@ -2127,6 +2138,131 @@ ORDER BY p.unit_price DESC;`
       PRODUCTS = PRODUCTS.filter(p => p.product_id !== productId);
       renderAll();
       alert(`Product #${productId} removed from catalog!`);
+    }
+
+    // Full CRUD: Supplier Management
+    async function handleSupplierEdit(supplierId) {
+      const sup = SUPPLIERS.find(s => s.id === supplierId || s.supplier_id === supplierId);
+      const newName = prompt("Edit Supplier Name:", sup?.name || sup?.supplier_name);
+      if (!newName || !newName.trim()) return;
+      const newEmail = prompt("Edit Supplier Email:", sup?.email || '');
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/suppliers/${supplierId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ supplier_name: newName.trim(), email: newEmail ? newEmail.trim() : null })
+        });
+        if (res.ok) {
+          alert(`Supplier #${supplierId} updated successfully in Supabase!`);
+          await fetchLiveData();
+          return;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+
+      if (sup) {
+        sup.name = newName;
+        if (newEmail) sup.email = newEmail;
+        renderSuppliers();
+      }
+    }
+
+    async function handleSupplierDelete(supplierId) {
+      if (!confirm(`Are you sure you want to delete Supplier #${supplierId}?`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/suppliers/${supplierId}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          alert(`Supplier #${supplierId} deleted successfully from Supabase!`);
+          await fetchLiveData();
+          return;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(`Cannot delete supplier: ${data.message || 'Referenced by existing purchase orders.'}`);
+          return;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+      SUPPLIERS = SUPPLIERS.filter(s => s.id !== supplierId && s.supplier_id !== supplierId);
+      renderSuppliers();
+    }
+
+    // Full CRUD: Rack Management
+    async function handleRackDelete(rackId) {
+      if (!confirm(`Are you sure you want to delete Rack #${rackId}?`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/racks/${rackId}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          alert(`Rack #${rackId} deleted successfully from Supabase!`);
+          await fetchLiveData();
+          return;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(`Cannot delete rack: ${data.message || 'Contains shelves with assigned products.'}`);
+          return;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+      RACKS = RACKS.filter(r => r.rack_id !== rackId);
+      renderRacks();
+    }
+
+    // Full CRUD: Purchase Order Management
+    async function handlePOReceive(poId) {
+      if (!confirm(`Confirm receipt of Purchase Order #${poId}? This will add stock to inventory.`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/purchases/${poId}/receive`, {
+          method: 'POST'
+        });
+        if (res.ok) {
+          alert(`Purchase Order #${poId} received! Stock updated in Supabase PostgreSQL views.`);
+          await fetchLiveData();
+          return;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+      const po = PURCHASE_ORDERS.find(p => p.po_id === poId);
+      if (po) po.status = 'Received';
+      renderPOs();
+    }
+
+    async function handlePODelete(poId) {
+      const po = PURCHASE_ORDERS.find(p => p.po_id === poId);
+      if (po && po.status === 'Received') {
+        alert(`Cannot delete Purchase Order #${poId}: received orders already contributed to store stock. Deleting would corrupt inventory calculations.`);
+        return;
+      }
+      if (!confirm(`Delete Purchase Order #${poId}?`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/purchases/${poId}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          alert(`Purchase Order #${poId} deleted successfully.`);
+          await fetchLiveData();
+          return;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(`Cannot delete: ${data.message || 'Protected record'}`);
+          return;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+      PURCHASE_ORDERS = PURCHASE_ORDERS.filter(p => p.po_id !== poId);
+      renderPOs();
     }
 
     function renderAll() {

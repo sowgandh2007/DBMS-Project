@@ -134,3 +134,70 @@ export async function createRack(rackData) {
   MOCK_RACKS.push(newRack);
   return { success: true, rack: newRack };
 }
+
+/**
+ * Update rack code or aisle.
+ */
+export async function updateRack(rackId, rackData) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/racks/${rackId}`, {
+      method: 'PUT',
+      body: JSON.stringify(rackData)
+    });
+  }
+  const idx = MOCK_RACKS.findIndex(r => r.rack_id === rackId);
+  if (idx !== -1) {
+    MOCK_RACKS[idx] = { ...MOCK_RACKS[idx], ...rackData };
+    return { success: true, data: MOCK_RACKS[idx] };
+  }
+  throw new Error(`Rack #${rackId} not found.`);
+}
+
+/**
+ * Delete rack (safely rejects if products assigned).
+ */
+export async function deleteRack(rackId) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/racks/${rackId}`, {
+      method: 'DELETE'
+    });
+  }
+  const idx = MOCK_RACKS.findIndex(r => r.rack_id === rackId);
+  if (idx !== -1) {
+    MOCK_RACKS.splice(idx, 1);
+    return { success: true };
+  }
+  throw new Error(`Rack #${rackId} not found.`);
+}
+
+/**
+ * Shelf CRUD Operations
+ */
+export async function createShelf(shelfData) {
+  if (!getUseMockData()) {
+    return await apiRequest('/shelves', {
+      method: 'POST',
+      body: JSON.stringify(shelfData)
+    });
+  }
+  return { success: true, data: { shelf_id: Date.now(), ...shelfData } };
+}
+
+export async function updateShelf(shelfId, shelfData) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/shelves/${shelfId}`, {
+      method: 'PUT',
+      body: JSON.stringify(shelfData)
+    });
+  }
+  return { success: true, data: { shelf_id: shelfId, ...shelfData } };
+}
+
+export async function deleteShelf(shelfId) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/shelves/${shelfId}`, {
+      method: 'DELETE'
+    });
+  }
+  return { success: true };
+}

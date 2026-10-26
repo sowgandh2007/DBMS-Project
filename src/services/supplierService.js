@@ -114,15 +114,52 @@ export async function createSupplier(supplierData) {
   const newSupplier = {
     supplier_id: Date.now(),
     supplier_name: supplierData.supplier_name,
-    contact_name: supplierData.contact_name,
-    email: supplierData.email,
-    phone: supplierData.phone,
-    address: supplierData.address,
+    contact_name: supplierData.contact_name || 'Procurement Rep',
+    email: supplierData.email || `${supplierData.supplier_name.toLowerCase().replace(/\s+/g, '')}@supplier.com`,
+    phone: supplierData.phone || '+91 98765 43210',
+    address: supplierData.address || 'Industrial Zone',
     status: supplierData.status || 'ACTIVE',
     total_products_supplied: 0,
     total_orders_placed: 0,
     total_procurement_spend: 0
   };
   MOCK_SUPPLIERS.push(newSupplier);
-  return { success: true, supplier: newSupplier };
+  return { success: true, data: newSupplier };
+}
+
+/**
+ * Update supplier contact details.
+ */
+export async function updateSupplier(supplierId, supplierData) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/suppliers/${supplierId}`, {
+      method: 'PUT',
+      body: JSON.stringify(supplierData)
+    });
+  }
+
+  const idx = MOCK_SUPPLIERS.findIndex(s => s.supplier_id === supplierId);
+  if (idx !== -1) {
+    MOCK_SUPPLIERS[idx] = { ...MOCK_SUPPLIERS[idx], ...supplierData };
+    return { success: true, data: MOCK_SUPPLIERS[idx] };
+  }
+  throw new Error(`Supplier #${supplierId} not found.`);
+}
+
+/**
+ * Delete a supplier (with dependency safety).
+ */
+export async function deleteSupplier(supplierId) {
+  if (!getUseMockData()) {
+    return await apiRequest(`/suppliers/${supplierId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  const idx = MOCK_SUPPLIERS.findIndex(s => s.supplier_id === supplierId);
+  if (idx !== -1) {
+    MOCK_SUPPLIERS.splice(idx, 1);
+    return { success: true };
+  }
+  throw new Error(`Supplier #${supplierId} not found.`);
 }

@@ -122,22 +122,23 @@ def edit_product(product_id):
     """
     PUT /api/products/<id>
     Update an existing product in Supabase PostgreSQL database.
-    Demonstrates UPDATE with parameter binding.
+    Allows modifying: product_name, sku, category_id, shelf_id, unit_price, reorder_level, is_active.
     """
     try:
         data = request.get_json() or {}
         updated = update_product(product_id, data)
         return jsonify({
             'success': True,
-            'message': f'Product #{product_id} updated successfully.',
+            'message': f"Product '{updated['product_name']}' (#{product_id}) updated successfully.",
             'data': updated
         }), 200
     except ValueError as e:
+        status_code = 404 if 'not found' in str(e).lower() else 400
         return jsonify({
             'success': False,
-            'error': 'Not Found',
+            'error': 'Validation Error' if status_code == 400 else 'Not Found',
             'message': str(e)
-        }), 404
+        }), status_code
     except Exception as e:
         logger.error(f"Error updating product #{product_id}: {str(e)}")
         return jsonify({
@@ -151,14 +152,16 @@ def remove_product(product_id):
     """
     DELETE /api/products/<id>
     Deactivate or remove a product from Supabase PostgreSQL database.
-    Demonstrates DELETE operation.
+    Query Parameters:
+      hard (bool): If true, attempts permanent delete if no historic orders reference it.
     """
     try:
         hard_delete = request.args.get('hard', 'false').lower() in ('true', '1')
         deleted = delete_product(product_id, hard_delete=hard_delete)
+        action_desc = "permanently deleted" if deleted.get('action') == 'hard_deleted' else "deactivated"
         return jsonify({
             'success': True,
-            'message': f'Product #{product_id} successfully deleted/deactivated.',
+            'message': f"Product #{product_id} successfully {action_desc}.",
             'data': deleted
         }), 200
     except ValueError as e:
@@ -167,6 +170,12 @@ def remove_product(product_id):
             'error': 'Not Found',
             'message': str(e)
         }), 404
+    except PermissionError as e:
+        return jsonify({
+            'success': False,
+            'error': 'Dependency Conflict',
+            'message': str(e)
+        }), 409
     except Exception as e:
         logger.error(f"Error deleting product #{product_id}: {str(e)}")
         return jsonify({

@@ -34,14 +34,17 @@ def create_app():
         return response
 
     from routes.products import products_bp
+    from routes.categories import categories_bp
     from routes.inventory import inventory_bp
     from routes.purchases import purchases_bp
     from routes.sales import sales_bp
     from routes.suppliers import suppliers_bp
     from routes.reports import reports_bp
     from routes.dashboard import dashboard_bp
+    from routes.racks import racks_bp, shelves_bp
 
     app.register_blueprint(products_bp, url_prefix='/api/products')
+    app.register_blueprint(categories_bp, url_prefix='/api/categories')
     app.register_blueprint(inventory_bp, url_prefix='/api/inventory')
     app.register_blueprint(inventory_bp, url_prefix='/api/alerts', name='alerts_alias')
     app.register_blueprint(purchases_bp, url_prefix='/api/purchases')
@@ -50,6 +53,8 @@ def create_app():
     app.register_blueprint(suppliers_bp, url_prefix='/api/suppliers')
     app.register_blueprint(reports_bp, url_prefix='/api/reports')
     app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+    app.register_blueprint(racks_bp, url_prefix='/api/racks')
+    app.register_blueprint(shelves_bp, url_prefix='/api/shelves')
 
     # Health check & DB status endpoint
     @app.route('/api/health', methods=['GET'])

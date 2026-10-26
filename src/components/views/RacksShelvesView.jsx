@@ -11,9 +11,21 @@ import {
   Code2, 
   Info,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  Edit2,
+  Trash2,
+  X
 } from 'lucide-react';
-import { getRacks, getRackShelves, createRack } from '../../services/rackService';
+import { 
+  getRacks, 
+  getRackShelves, 
+  createRack,
+  updateRack,
+  deleteRack,
+  createShelf,
+  deleteShelf 
+} from '../../services/rackService';
 
 export default function RacksShelvesView({ onOpenInspector }) {
   const [racks, setRacks] = useState([]);
@@ -21,35 +33,68 @@ export default function RacksShelvesView({ onOpenInspector }) {
   const [shelves, setShelves] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Notifications
+  const [actionSuccess, setActionSuccess] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Filters
   const [selectedAisle, setSelectedAisle] = useState('all');
-  const [selectedZone, setSelectedZone] = useState('all');
 
-  // Add Rack Modal
+  // Modals
   const [isAddRackOpen, setIsAddRackOpen] = useState(false);
+  const [isEditRackOpen, setIsEditRackOpen] = useState(false);
+  const [isDeleteRackOpen, setIsDeleteRackOpen] = useState(false);
+  const [isAddShelfOpen, setIsAddShelfOpen] = useState(false);
+
+  // Forms
   const [newRackData, setNewRackData] = useState({
     rack_code: '',
-    aisle_number: 'Aisle 01',
-    zone: 'Dry Grocery Zone',
-    category_type: 'General Merchandise',
-    max_capacity: 400,
-    shelves_count: 4,
-    description: ''
+    aisle: 'A',
+    shelves_count: 2
   });
 
-  const loadRacks = async () => {
+  const [editRackData, setEditRackData] = useState({
+    rack_id: null,
+    rack_code: '',
+    aisle: ''
+  });
+
+  const [newShelfNumber, setNewShelfNumber] = useState('');
+
+  const notify = (msg, isErr = false) => {
+    if (isErr) {
+      setActionError(msg);
+      setActionSuccess(null);
+    } else {
+      setActionSuccess(msg);
+      setActionError(null);
+    }
+    setTimeout(() => {
+      setActionSuccess(null);
+      setActionError(null);
+    }, 4500);
+  };
+
+  const loadRacks = async (preserveSelectedId = null) => {
     setLoading(true);
     try {
-      const res = await getRacks({
-        aisle: selectedAisle,
-        zone: selectedZone
-      });
+      const res = await getRacks({ aisle: selectedAisle });
       setRacks(res || []);
-      if (res && res.length > 0 && !selectedRack) {
+      
+      const targetId = preserveSelectedId || selectedRack?.rack_id;
+      const matched = (res || []).find(r => r.rack_id === targetId);
+      if (matched) {
+        handleSelectRack(matched);
+      } else if (res && res.length > 0) {
         handleSelectRack(res[0]);
+      } else {
+        setSelectedRack(null);
+        setShelves([]);
       }
     } catch (err) {
       console.error(err);
+      notify("Failed to load racks from database.", true);
     } finally {
       setLoading(false);
     }
@@ -57,7 +102,7 @@ export default function RacksShelvesView({ onOpenInspector }) {
 
   useEffect(() => {
     loadRacks();
-  }, [selectedAisle, selectedZone]);
+  }, [selectedAisle]);
 
   const handleSelectRack = async (rack) => {
     setSelectedRack(rack);
@@ -71,34 +116,133 @@ export default function RacksShelvesView({ onOpenInspector }) {
 
   const handleAddRackSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
-      await createRack(newRackData);
-      setIsAddRackOpen(false);
-      setNewRackData({
-        rack_code: '',
-        aisle_number: 'Aisle 01',
-        zone: 'Dry Grocery Zone',
-        category_type: 'General Merchandise',
-        max_capacity: 400,
-        shelves_count: 4,
-        description: ''
+      const created = await createRack({
+        rack_code: newRackData.rack_code.toUpperCase(),
+        aisle: newRackData.aisle.toUpperCase(),
+        shelves_count: parseInt(newRackData.shelves_count, 10) || 2
       });
-      loadRacks();
+      setIsAddRackOpen(false);
+      setNewRackData({ rack_code: '', aisle: 'A', shelves_count: 2 });
+      notify("New storage rack created successfully!");
+      loadRacks(created?.data?.rack_id);
     } catch (err) {
-      alert("Error adding rack: " + err.message);
+      notify("Error adding rack: " + err.message, true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const aisles = ['all', 'Aisle 01', 'Aisle 02', 'Aisle 03', 'Aisle 04'];
-  const zones = ['all', 'Dry Grocery Zone', 'Personal Care Zone', 'Cold Storage Zone', 'Household Essentials'];
+  const handleOpenEditRack = (rack, e) => {
+    e.stopPropagation();
+    setEditRackData({
+      rack_id: rack.rack_id,
+      rack_code: rack.rack_code,
+      aisle: rack.aisle_number || rack.aisle || 'A'
+    });
+    setIsEditRackOpen(true);
+  };
+
+  const handleEditRackSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await updateRack(editRackData.rack_id, {
+        rack_code: editRackData.rack_code.toUpperCase(),
+        aisle: editRackData.aisle.toUpperCase()
+      });
+      setIsEditRackOpen(false);
+      notify(`Rack #${editRackData.rack_id} updated successfully!`);
+      loadRacks(editRackData.rack_id);
+    } catch (err) {
+      notify("Error updating rack: " + err.message, true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenDeleteRack = (rack, e) => {
+    e.stopPropagation();
+    setSelectedRack(rack);
+    setIsDeleteRackOpen(true);
+  };
+
+  const handleDeleteRackConfirm = async () => {
+    if (!selectedRack) return;
+    setIsSubmitting(true);
+    try {
+      await deleteRack(selectedRack.rack_id);
+      setIsDeleteRackOpen(false);
+      notify(`Rack '${selectedRack.rack_code}' removed successfully.`);
+      loadRacks();
+    } catch (err) {
+      notify(err.message || "Cannot delete rack with assigned products.", true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddShelfSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedRack || !newShelfNumber.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await createShelf({
+        rack_id: selectedRack.rack_id,
+        shelf_number: newShelfNumber.trim().toUpperCase()
+      });
+      setIsAddShelfOpen(false);
+      setNewShelfNumber('');
+      notify("Shelf created successfully!");
+      handleSelectRack(selectedRack);
+    } catch (err) {
+      notify("Error adding shelf: " + err.message, true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteShelf = async (shelf) => {
+    if (!window.confirm(`Delete shelf ${shelf.shelf_number} from Rack ${selectedRack.rack_code}?`)) return;
+    setIsSubmitting(true);
+    try {
+      await deleteShelf(shelf.shelf_id);
+      notify(`Shelf ${shelf.shelf_number} deleted successfully.`);
+      handleSelectRack(selectedRack);
+    } catch (err) {
+      notify(err.message || "Cannot delete shelf with stored products.", true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
+      {/* Alert Banners */}
+      {actionSuccess && (
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-bold flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <span>{actionSuccess}</span>
+        </div>
+      )}
+      {actionError && (
+        <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs font-bold flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <span>{actionError}</span>
+          </div>
+          <button onClick={() => setActionError(null)} className="text-slate-400 hover:text-white">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* View Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-extrabold text-white tracking-tight">Racks & Shelves Management</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Interactive warehouse floor plan, physical rack tiers, and shelf occupancy.</p>
+          <p className="text-xs text-slate-400 mt-0.5">Physical warehouse layout, storage tiers, and shelf assignments.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -118,39 +262,6 @@ export default function RacksShelvesView({ onOpenInspector }) {
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="glass-card rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
-        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Aisle:</span>
-          {aisles.map((a) => (
-            <button
-              key={a}
-              onClick={() => setSelectedAisle(a)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-colors ${
-                selectedAisle === a
-                  ? 'bg-brand-500 text-white border-brand-500 shadow-sm'
-                  : 'bg-dark-700 border-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              {a === 'all' ? 'All Aisles' : a}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Zone:</span>
-          <select
-            value={selectedZone}
-            onChange={(e) => setSelectedZone(e.target.value)}
-            className="form-input text-white bg-dark-700 cursor-pointer w-auto"
-          >
-            {zones.map((z) => (
-              <option key={z} value={z}>{z === 'all' ? 'All Zones' : z}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
       {/* Main Split Grid: Racks List & Shelf Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Racks Cards (Left 7 cols) */}
@@ -166,9 +277,6 @@ export default function RacksShelvesView({ onOpenInspector }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {racks.map((rack) => {
               const isSelected = selectedRack?.rack_id === rack.rack_id;
-              const occPct = parseFloat(rack.occupancy_percentage || 0);
-              const isCritical = occPct >= 90;
-              const isOptimal = occPct >= 70 && occPct < 90;
 
               return (
                 <div
@@ -188,37 +296,32 @@ export default function RacksShelvesView({ onOpenInspector }) {
                           <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-400 font-semibold mt-0.5 block">{rack.aisle_number} • {rack.zone}</span>
-                    </div>
-
-                    <StatusBadge
-                      status={isCritical ? 'NEAR_FULL' : (isOptimal ? 'OPTIMAL' : 'AVAILABLE')}
-                      type="rack"
-                    />
-                  </div>
-
-                  {/* Capacity Meter */}
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-medium">Occupancy</span>
-                      <span className="font-bold text-white font-mono">
-                        {rack.current_stored_units} / {rack.max_capacity} <span className="text-[10px] text-slate-500 font-normal">units</span>
+                      <span className="text-xs text-slate-400 font-semibold mt-0.5 block">
+                        Aisle: {rack.aisle_number || rack.aisle} • ID #{rack.rack_id}
                       </span>
                     </div>
 
-                    <div className="w-full bg-dark-700 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          isCritical ? 'bg-rose-500' : (isOptimal ? 'bg-amber-400' : 'bg-brand-500')
-                        }`}
-                        style={{ width: `${Math.min(100, occPct)}%` }}
-                      />
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => handleOpenEditRack(rack, e)}
+                        title="Edit Rack"
+                        className="p-1.5 text-slate-400 hover:text-white bg-dark-700 hover:bg-slate-600 rounded-lg transition-colors border border-slate-700"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => handleOpenDeleteRack(rack, e)}
+                        title="Delete Rack"
+                        className="p-1.5 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors border border-rose-500/20"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-3 border-t border-slate-800/60 text-[11px] text-slate-400">
-                    <span>{rack.shelves_count || 4} Shelves Tier</span>
-                    <span className="font-mono font-bold text-slate-200">{rack.occupancy_percentage}% Full</span>
+                    <span>{rack.shelves_count || 1} Shelves in Rack</span>
+                    <span className="font-mono text-brand-400 font-bold">Active Rack</span>
                   </div>
                 </div>
               );
@@ -233,170 +336,110 @@ export default function RacksShelvesView({ onOpenInspector }) {
               <Layers className="w-4 h-4 text-indigo-400" />
               Shelf Tiers for {selectedRack ? selectedRack.rack_code : '...'}
             </span>
+            {selectedRack && (
+              <button
+                onClick={() => setIsAddShelfOpen(true)}
+                className="px-2.5 py-1 text-xs font-bold bg-dark-700 hover:bg-dark-600 text-brand-400 rounded-lg border border-slate-700 flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Shelf</span>
+              </button>
+            )}
           </div>
 
           {selectedRack ? (
             <div className="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col gap-4">
-              <div className="p-3 rounded-xl bg-dark-700/50 border border-slate-700/60 flex flex-col gap-1">
-                <div className="flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-dark-700/50 border border-slate-700/60 flex items-center justify-between">
+                <div>
                   <span className="font-black text-white text-sm font-mono">{selectedRack.rack_code}</span>
-                  <span className="text-xs text-brand-400 font-bold">{selectedRack.category_type}</span>
+                  <span className="text-xs text-slate-400 block">Aisle {selectedRack.aisle_number || selectedRack.aisle}</span>
                 </div>
-                <span className="text-xs text-slate-400">{selectedRack.description || 'Standard retail warehouse racking system.'}</span>
+                <span className="text-xs font-bold text-brand-400 bg-brand-500/10 px-2.5 py-1 rounded-lg">
+                  {shelves.length} Shelves
+                </span>
               </div>
 
-              {/* Vertical Shelves Visualization (Level 4 on top, Level 1 at bottom) */}
+              {/* Vertical Shelves Visualization */}
               <div className="flex flex-col gap-3">
                 {shelves.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic py-4 text-center">Loading shelves...</p>
+                  <p className="text-slate-500 italic text-xs text-center py-6">No shelves installed in this rack yet.</p>
                 ) : (
-                  [...shelves].reverse().map((shelf) => {
-                    const occPct = parseFloat(shelf.shelf_occupancy_pct || 0);
-
-                    return (
-                      <div
-                        key={shelf.shelf_id}
-                        className="p-3.5 rounded-xl bg-dark-700/70 border border-slate-700/80 flex flex-col gap-2.5"
-                      >
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded bg-dark-900 text-indigo-300 font-mono font-bold text-[11px] border border-slate-800">
-                              {shelf.shelf_code}
-                            </span>
-                            <span className="font-bold text-slate-200">Level {shelf.shelf_level}</span>
-                          </div>
-                          <span className="font-mono text-slate-300 font-bold text-xs">
-                            {shelf.current_quantity} / {shelf.max_capacity} ({shelf.shelf_occupancy_pct}%)
-                          </span>
+                  shelves.map((sh) => (
+                    <div
+                      key={sh.shelf_id}
+                      className="p-3.5 rounded-xl border border-slate-700/70 bg-dark-700/40 hover:bg-dark-700/60 transition-all flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="font-bold text-white text-xs flex items-center gap-2">
+                          <span className="font-mono text-brand-400 font-extrabold">{sh.shelf_number}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">(ID #{sh.shelf_id})</span>
                         </div>
-
-                        {/* Progress Bar */}
-                        <div className="w-full bg-dark-900 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-brand-500 h-1.5 rounded-full"
-                            style={{ width: `${Math.min(100, occPct)}%` }}
-                          />
-                        </div>
-
-                        {/* Stored products list */}
-                        {shelf.items && shelf.items.length > 0 ? (
-                          <div className="flex flex-col gap-1 pt-1.5 border-t border-slate-800/60">
-                            {shelf.items.map((it, idx) => (
-                              <div key={idx} className="flex items-center justify-between text-[11px]">
-                                <span className="text-slate-300 truncate max-w-[200px]">{it.product_name}</span>
-                                <span className="font-mono font-bold text-brand-400">{it.quantity} units</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-slate-500 italic">Shelf currently empty</span>
-                        )}
+                        <span className="text-[11px] text-slate-400 mt-0.5 block">
+                          Assigned to Rack {selectedRack.rack_code}
+                        </span>
                       </div>
-                    );
-                  })
+
+                      <button
+                        onClick={() => handleDeleteShelf(sh)}
+                        title="Delete Shelf"
+                        className="p-1.5 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors border border-rose-500/20"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
           ) : (
-            <div className="glass-card rounded-2xl p-8 text-center text-slate-500 italic text-xs">
-              Select a rack from the left to inspect its vertical shelf levels.
+            <div className="glass-card rounded-2xl p-12 text-center text-slate-500 italic text-xs">
+              Select a rack from the left to inspect shelves.
             </div>
           )}
         </div>
       </div>
 
-      {/* Add Rack Modal */}
+      {/* --- ADD RACK MODAL --- */}
       <Modal
         isOpen={isAddRackOpen}
         onClose={() => setIsAddRackOpen(false)}
-        title="Add New Warehouse Storage Rack"
-        subtitle="Insert a new rack structure into the database. Parameterized query in queries/racks_shelves.sql."
+        title="Add Physical Storage Rack"
+        subtitle="Insert a new rack record into PostgreSQL warehouse layout."
       >
         <form onSubmit={handleAddRackSubmit} className="flex flex-col gap-4 text-xs">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rack Code</label>
-              <input
-                type="text"
-                required
-                value={newRackData.rack_code}
-                onChange={(e) => setNewRackData({ ...newRackData, rack_code: e.target.value })}
-                placeholder="e.g. RACK-E1"
-                className="form-input font-mono font-bold"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aisle Number</label>
-              <input
-                type="text"
-                required
-                value={newRackData.aisle_number}
-                onChange={(e) => setNewRackData({ ...newRackData, aisle_number: e.target.value })}
-                placeholder="e.g. Aisle 05"
-                className="form-input"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Zone Assignment</label>
-              <input
-                type="text"
-                required
-                value={newRackData.zone}
-                onChange={(e) => setNewRackData({ ...newRackData, zone: e.target.value })}
-                placeholder="e.g. Bulk Storage Zone"
-                className="form-input"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category Type</label>
-              <input
-                type="text"
-                value={newRackData.category_type}
-                onChange={(e) => setNewRackData({ ...newRackData, category_type: e.target.value })}
-                placeholder="e.g. Snacks & Bakery"
-                className="form-input"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Unit Capacity</label>
-              <input
-                type="number"
-                required
-                value={newRackData.max_capacity}
-                onChange={(e) => setNewRackData({ ...newRackData, max_capacity: e.target.value })}
-                placeholder="400"
-                className="form-input font-bold"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Initial Shelves Count</label>
-              <input
-                type="number"
-                min="1"
-                max="8"
-                required
-                value={newRackData.shelves_count}
-                onChange={(e) => setNewRackData({ ...newRackData, shelves_count: e.target.value })}
-                placeholder="4"
-                className="form-input font-bold"
-              />
-            </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rack Code</label>
+            <input
+              type="text"
+              required
+              value={newRackData.rack_code}
+              onChange={(e) => setNewRackData({ ...newRackData, rack_code: e.target.value.toUpperCase() })}
+              placeholder="e.g. R-C1"
+              className="form-input font-mono"
+            />
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rack Description</label>
-            <textarea
-              rows="2"
-              value={newRackData.description}
-              onChange={(e) => setNewRackData({ ...newRackData, description: e.target.value })}
-              placeholder="e.g. Heavy-duty pallet racking for boxed shipments..."
-              className="form-input resize-none"
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aisle</label>
+            <input
+              type="text"
+              required
+              value={newRackData.aisle}
+              onChange={(e) => setNewRackData({ ...newRackData, aisle: e.target.value.toUpperCase() })}
+              placeholder="e.g. C"
+              className="form-input font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Initial Shelves Count</label>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={newRackData.shelves_count}
+              onChange={(e) => setNewRackData({ ...newRackData, shelves_count: e.target.value })}
+              className="form-input"
             />
           </div>
 
@@ -404,15 +447,147 @@ export default function RacksShelvesView({ onOpenInspector }) {
             <button
               type="button"
               onClick={() => setIsAddRackOpen(false)}
-              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400 hover:text-white transition-colors"
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md transition-all"
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md disabled:opacity-50"
             >
-              Create Rack & Shelves
+              {isSubmitting ? 'Creating...' : 'Create Rack'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* --- EDIT RACK MODAL --- */}
+      <Modal
+        isOpen={isEditRackOpen}
+        onClose={() => setIsEditRackOpen(false)}
+        title={`Edit Rack #${editRackData.rack_id}`}
+        subtitle="Update rack identifier and aisle in PostgreSQL."
+      >
+        <form onSubmit={handleEditRackSubmit} className="flex flex-col gap-4 text-xs">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rack Code</label>
+            <input
+              type="text"
+              required
+              value={editRackData.rack_code}
+              onChange={(e) => setEditRackData({ ...editRackData, rack_code: e.target.value.toUpperCase() })}
+              className="form-input font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aisle</label>
+            <input
+              type="text"
+              required
+              value={editRackData.aisle}
+              onChange={(e) => setEditRackData({ ...editRackData, aisle: e.target.value.toUpperCase() })}
+              className="form-input font-mono"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setIsEditRackOpen(false)}
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md disabled:opacity-50"
+            >
+              {isSubmitting ? 'Updating...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* --- DELETE RACK MODAL --- */}
+      <Modal
+        isOpen={isDeleteRackOpen}
+        onClose={() => setIsDeleteRackOpen(false)}
+        title="Confirm Rack Deletion"
+        subtitle="Safely check product assignment dependencies before removing rack."
+      >
+        <div className="flex flex-col gap-4 text-xs">
+          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold text-white text-sm">
+                Delete Rack "{selectedRack?.rack_code}"?
+              </div>
+              <p className="text-slate-400 mt-1">
+                Aisle: {selectedRack?.aisle_number || selectedRack?.aisle} | Rack ID: #{selectedRack?.rack_id}
+              </p>
+              <p className="text-slate-400 mt-2">
+                Racks containing shelves with currently assigned products cannot be deleted unless those products are first reassigned.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setIsDeleteRackOpen(false)}
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleDeleteRackConfirm}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-md disabled:opacity-50"
+            >
+              {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* --- ADD SHELF MODAL --- */}
+      <Modal
+        isOpen={isAddShelfOpen}
+        onClose={() => setIsAddShelfOpen(false)}
+        title={`Add Shelf to Rack ${selectedRack?.rack_code}`}
+        subtitle="Create an addressable shelf tier for product placement."
+      >
+        <form onSubmit={handleAddShelfSubmit} className="flex flex-col gap-4 text-xs">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Shelf Number</label>
+            <input
+              type="text"
+              required
+              value={newShelfNumber}
+              onChange={(e) => setNewShelfNumber(e.target.value.toUpperCase())}
+              placeholder="e.g. S3"
+              className="form-input font-mono"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setIsAddShelfOpen(false)}
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md disabled:opacity-50"
+            >
+              {isSubmitting ? 'Adding...' : 'Add Shelf'}
             </button>
           </div>
         </form>
