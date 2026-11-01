@@ -4,8 +4,8 @@
 // =============================================================================
 
 export const API_CONFIG = {
-  // Python Flask backend URL pointing to local server or proxy
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api',
+  // Python Flask backend URL pointing to /api (proxied in Vite or routed via Vercel services)
+  BASE_URL: import.meta.env.VITE_API_URL || '/api',
   USE_MOCK_DATA: false, // Always prioritize and use live Supabase PostgreSQL backend
   TIMEOUT_MS: 10000,
 };
