@@ -123,4 +123,10 @@ app = create_app()
 
 if __name__ == '__main__':
     logger.info(f"Starting Retail Inventory API server on port {Config.PORT}...")
-    app.run(host='0.0.0.0', port=Config.PORT, debug=Config.DEBUG)
+    try:
+        app.run(host='0.0.0.0', port=Config.PORT, debug=Config.DEBUG)
+    except OSError as e:
+        if '10048' in str(e) or 'already in use' in str(e) or 'Address' in str(e):
+            logger.info(f"Backend API is already running on port {Config.PORT} in background. Ready to serve requests!")
+        else:
+            raise

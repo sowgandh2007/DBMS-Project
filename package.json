@@ -4,7 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -n \"backend,frontend\" -c \"teal,blue\" \"python backend/app.py\" \"vite\"",
+    "dev:front": "vite",
+    "dev:back": "python backend/app.py",
+    "server": "python backend/server.py",
+    "backend:start": "wscript //Nologo scripts/start_backend_silent.vbs",
+    "backend:stop": "scripts\\stop_backend.bat",
+    "backend:status": "scripts\\status_backend.bat",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"
@@ -19,6 +25,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.6.1",
+    "concurrently": "^10.0.6",
     "oxlint": "^1.81.0",
     "postcss": "^8.5.30",
     "tailwindcss": "^3.4.17",
