@@ -38,8 +38,11 @@ export default function RacksShelvesView() {
   const [isAddRackOpen, setIsAddRackOpen] = useState(false);
   const [isEditRackOpen, setIsEditRackOpen] = useState(false);
   const [isDeleteRackOpen, setIsDeleteRackOpen] = useState(false);
+  const [rackToDelete, setRackToDelete] = useState(null);
   const [isAddShelfOpen, setIsAddShelfOpen] = useState(false);
   const [isEditShelfOpen, setIsEditShelfOpen] = useState(false);
+  const [isDeleteShelfOpen, setIsDeleteShelfOpen] = useState(false);
+  const [shelfToDelete, setShelfToDelete] = useState(null);
 
   // Forms
   const [newRackData, setNewRackData] = useState({
@@ -159,17 +162,18 @@ export default function RacksShelvesView() {
 
   const handleOpenDeleteRack = (rack, e) => {
     e.stopPropagation();
-    setSelectedRack(rack);
+    setRackToDelete(rack);
     setIsDeleteRackOpen(true);
   };
 
   const handleDeleteRackConfirm = async () => {
-    if (!selectedRack) return;
+    if (!rackToDelete) return;
     setIsSubmitting(true);
     try {
-      await deleteRack(selectedRack.rack_id);
+      await deleteRack(rackToDelete.rack_id);
       setIsDeleteRackOpen(false);
-      notify(`Rack '${selectedRack.rack_code}' deleted.`);
+      notify(`Rack '${rackToDelete.rack_code}' deleted.`);
+      setRackToDelete(null);
       loadRacks();
     } catch (err) {
       notify(err.message || "Cannot delete rack with assigned products.", true);
@@ -224,12 +228,19 @@ export default function RacksShelvesView() {
     }
   };
 
-  const handleDeleteShelf = async (shelf) => {
-    if (!window.confirm(`Delete shelf ${shelf.shelf_number} from Rack ${selectedRack.rack_code}?`)) return;
+  const handleOpenDeleteShelf = (shelf) => {
+    setShelfToDelete(shelf);
+    setIsDeleteShelfOpen(true);
+  };
+
+  const handleDeleteShelfConfirm = async () => {
+    if (!shelfToDelete) return;
     setIsSubmitting(true);
     try {
-      await deleteShelf(shelf.shelf_id);
-      notify(`Shelf ${shelf.shelf_number} deleted.`);
+      await deleteShelf(shelfToDelete.shelf_id);
+      setIsDeleteShelfOpen(false);
+      notify(`Shelf ${shelfToDelete.shelf_number} deleted.`);
+      setShelfToDelete(null);
       handleSelectRack(selectedRack);
     } catch (err) {
       notify(err.message || "Cannot delete shelf with stored products.", true);
@@ -317,14 +328,14 @@ export default function RacksShelvesView() {
                       <button
                         onClick={(e) => handleOpenEditRack(rack, e)}
                         title="Edit Rack"
-                        className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200"
+                        className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200 touch-manipulation"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={(e) => handleOpenDeleteRack(rack, e)}
                         title="Delete Rack"
-                        className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-slate-200"
+                        className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-slate-200 touch-manipulation"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -397,14 +408,14 @@ export default function RacksShelvesView() {
                         <button
                           onClick={() => handleOpenEditShelf(sh)}
                           title="Edit Shelf"
-                          className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200"
+                          className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200 touch-manipulation"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDeleteShelf(sh)}
+                          onClick={() => handleOpenDeleteShelf(sh)}
                           title="Delete Shelf"
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-slate-200"
+                          className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-slate-200 touch-manipulation"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -549,10 +560,10 @@ export default function RacksShelvesView() {
             <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
             <div>
               <div className="font-bold text-slate-900 text-sm">
-                Delete Rack "{selectedRack?.rack_code}"?
+                Delete Rack "{rackToDelete?.rack_code || selectedRack?.rack_code}"?
               </div>
               <p className="text-slate-600 mt-1">
-                Aisle: {selectedRack?.aisle_number || selectedRack?.aisle} | Shelves: {shelves.length}
+                Aisle: {rackToDelete?.aisle_number || rackToDelete?.aisle || selectedRack?.aisle_number || selectedRack?.aisle} | Shelves: {shelves.length}
               </p>
               <p className="text-slate-500 mt-2">
                 Cannot delete this rack if any shelf holds active products. Reassign products first.
@@ -572,7 +583,7 @@ export default function RacksShelvesView() {
               type="button"
               onClick={handleDeleteRackConfirm}
               disabled={isSubmitting}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all disabled:opacity-50"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all disabled:opacity-50 touch-manipulation"
             >
               {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
             </button>
@@ -656,6 +667,49 @@ export default function RacksShelvesView() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* --- DELETE SHELF MODAL --- */}
+      <Modal
+        isOpen={isDeleteShelfOpen}
+        onClose={() => setIsDeleteShelfOpen(false)}
+        title="Confirm Shelf Deletion"
+        subtitle="Safely delete vertical shelf tier."
+      >
+        <div className="flex flex-col gap-4 text-xs">
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold text-slate-900 text-sm">
+                Delete Shelf "{shelfToDelete?.shelf_number}"?
+              </div>
+              <p className="text-slate-600 mt-1">
+                Rack: <span className="font-mono font-bold text-slate-900">{selectedRack?.rack_code}</span> | Shelf ID: #{shelfToDelete?.shelf_id}
+              </p>
+              <p className="text-slate-500 mt-2">
+                Cannot delete this shelf if any products are currently assigned to it. Move or reassign products first.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsDeleteShelfOpen(false)}
+              className="btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteShelfConfirm}
+              disabled={isSubmitting}
+              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all disabled:opacity-50 touch-manipulation"
+            >
+              {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

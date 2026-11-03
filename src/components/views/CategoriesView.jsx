@@ -182,9 +182,65 @@ export default function CategoriesView() {
         </span>
       </div>
 
-      {/* Categories Table */}
-      <div className="premium-card rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Categories Content (Mobile Cards + Desktop Table) */}
+      <div className="premium-card rounded-2xl overflow-hidden w-full max-w-full">
+        {/* Mobile View (block md:hidden) */}
+        <div className="block md:hidden divide-y divide-slate-100 bg-white">
+          {error ? (
+            <div className="p-6 text-center text-rose-600 text-xs">
+              <AlertTriangle className="w-5 h-5 mx-auto mb-2 text-rose-500" />
+              <span className="font-semibold">{error}</span>
+            </div>
+          ) : loading ? (
+            <div className="p-8 text-center text-slate-400 flex items-center justify-center gap-2 text-xs">
+              <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+              <span>Loading categories...</span>
+            </div>
+          ) : filteredCategories.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 italic text-xs">
+              No categories found.
+            </div>
+          ) : (
+            filteredCategories.map((cat) => (
+              <div key={cat.category_id} className="p-3.5 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] text-slate-400 font-semibold">#{cat.category_id}</span>
+                    <h4 className="font-bold text-slate-900 text-sm truncate">{cat.category_name}</h4>
+                  </div>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200/80">
+                      <Package className="w-2.5 h-2.5" />
+                      {cat.product_count ?? 0} SKUs
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(cat)}
+                    className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center touch-manipulation shadow-xs"
+                    title="Edit Category"
+                  >
+                    <Edit2 className="w-4 h-4 text-teal-600" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDelete(cat)}
+                    className="w-9 h-9 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center touch-manipulation"
+                    title="Delete Category"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-600" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table (hidden md:block) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
@@ -233,16 +289,18 @@ export default function CategoriesView() {
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
+                          type="button"
                           onClick={() => handleOpenEdit(cat)}
                           title="Edit Category"
-                          className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition-colors"
+                          className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleOpenDelete(cat)}
                           title="Delete Category"
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors"
+                          className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

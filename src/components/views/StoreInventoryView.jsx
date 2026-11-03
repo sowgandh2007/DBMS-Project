@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import StatusBadge from '../common/StatusBadge';
 import Modal from '../common/Modal';
+import RecordSaleModal from '../common/RecordSaleModal';
 import { 
   Boxes, 
   Search, 
   Filter, 
   Plus, 
   Code2, 
-  Database,
-  AlertTriangle,
-  Edit2,
-  Trash2,
-  CheckCircle2,
-  X,
-  AlertCircle
+  Database, 
+  AlertTriangle, 
+  Edit2, 
+  Trash2, 
+  CheckCircle2, 
+  X, 
+  AlertCircle,
+  ShoppingCart
 } from 'lucide-react';
 import { getInventory } from '../../services/inventoryService';
 import { updateProduct, deleteProduct, getCategories } from '../../services/productService';
@@ -52,6 +54,10 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
   // Delete Product Confirmation Modal State
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Quick Record Sale Modal State (matching sowgandh.vercel.app scaled up)
+  const [isRecordSaleOpen, setIsRecordSaleOpen] = useState(false);
+  const [saleTarget, setSaleTarget] = useState(null);
 
   const loadReferenceData = async () => {
     try {
@@ -146,6 +152,16 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
     setIsDeleteOpen(true);
   };
 
+  const handleOpenRecordSale = (item) => {
+    setSaleTarget(item);
+    setIsRecordSaleOpen(true);
+  };
+
+  const handleSaleSuccess = ({ product, quantity, totalRevenue, realizedProfit }) => {
+    notify(`Sale of ${quantity}x ${product.product_name} recorded! Revenue: ₹${totalRevenue.toFixed(2)} | Realized Profit: +₹${realizedProfit.toFixed(2)}`);
+    loadInventory();
+  };
+
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     setIsSubmitting(true);
@@ -166,18 +182,18 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
     <div className="flex flex-col gap-6 animate-fade-in">
       {/* Alert Banners */}
       {actionSuccess && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-bold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
           <span>{actionSuccess}</span>
         </div>
       )}
       {actionError && (
-        <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs font-bold flex items-center justify-between gap-2">
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold flex items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>{actionError}</span>
           </div>
-          <button onClick={() => setActionError(null)} className="text-slate-400 hover:text-white">
+          <button onClick={() => setActionError(null)} className="text-rose-400 hover:text-rose-700">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -186,21 +202,21 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-white tracking-tight">Store Inventory</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Real-time stock valuation and inventory control via canonical view <code className="text-brand-300">product_stock</code>.</p>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Store Inventory</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Real-time stock valuation and inventory control via canonical view <code className="text-teal-700 font-mono">product_stock</code>.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => onOpenInspector('inventory')}
-            className="bg-dark-700 hover:bg-dark-600 text-slate-300 font-bold text-xs py-2 px-3 rounded-xl border border-slate-700 flex items-center gap-1.5 transition-all shadow-sm"
+            className="btn-secondary text-xs flex items-center gap-1.5"
           >
-            <Code2 className="w-3.5 h-3.5 text-brand-400" />
+            <Code2 className="w-3.5 h-3.5 text-teal-600" />
             <span>SQL Query</span>
           </button>
           {onAddProduct && (
             <button
               onClick={onAddProduct}
-              className="bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs py-2 px-3.5 rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-brand-500/20"
+              className="btn-primary text-xs flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Product</span>
@@ -210,7 +226,7 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="glass-card rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch justify-between">
+      <div className="premium-card p-3.5 sm:p-4 flex flex-col md:flex-row gap-3 items-stretch justify-between">
         {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -234,10 +250,10 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
             <button
               key={st.id}
               onClick={() => setStatus(st.id)}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
                 status === st.id
-                  ? 'bg-brand-500 text-white shadow-sm'
-                  : 'bg-dark-700 text-slate-400 hover:text-slate-200'
+                  ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white border-teal-700 shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               {st.label}
@@ -246,49 +262,134 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
         </div>
       </div>
 
-      {/* Store Inventory Table */}
-      <div className="glass-card rounded-2xl overflow-hidden border border-slate-800">
-        <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
+      {/* Store Inventory Display (Mobile Cards + Desktop Table) */}
+      <div className="premium-card rounded-2xl overflow-hidden w-full max-w-full">
+        <div className="p-3.5 px-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2">
-            <Boxes className="w-4 h-4 text-brand-500" />
-            <span className="text-xs font-bold text-white uppercase tracking-wider">Inventory Ledger</span>
+            <Boxes className="w-4 h-4 text-teal-600" />
+            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Inventory Ledger</span>
           </div>
-          <span className="text-xs text-slate-400 font-semibold">{items.length} SKUs Listed</span>
+          <span className="text-xs text-slate-500 font-semibold">{items.length} SKUs Listed</span>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile View (block md:hidden) */}
+        <div className="block md:hidden divide-y divide-slate-100 bg-white">
+          {error ? (
+            <div className="p-6 text-center text-rose-600 text-xs">
+              <AlertTriangle className="w-5 h-5 mx-auto mb-2 text-rose-500" />
+              <span className="font-semibold">{error}</span>
+            </div>
+          ) : loading ? (
+            <div className="p-8 text-center text-slate-400 flex items-center justify-center gap-2 text-xs">
+              <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+              <span>Loading inventory...</span>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 italic text-xs">
+              No items found matching the selected filters.
+            </div>
+          ) : (
+            items.map((item) => {
+              const unitPrice = Number(item.unit_price || 0);
+              const costPrice = Number(item.cost_price || (unitPrice * 0.7));
+              const projProfit = (unitPrice - costPrice) * (item.total_stock || 0);
+
+              return (
+                <div key={item.product_id} className="p-3.5 flex flex-col gap-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-slate-900 text-sm truncate">{item.product_name}</h4>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded font-semibold">{item.sku}</span>
+                        <span className="text-[10px] text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{item.category}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <StatusBadge status={item.stock_status} type="stock" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 py-2 px-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <div>
+                      <span className="text-slate-400 text-[10px] uppercase font-bold block">Sell Price</span>
+                      <span className="font-mono font-bold text-slate-900 text-xs sm:text-sm">₹{unitPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-slate-400 text-[10px] uppercase font-bold block">Physical</span>
+                      <span className="font-bold text-slate-800 text-xs">{item.total_stock} <span className="text-[10px] text-slate-400 font-normal">units</span></span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-slate-400 text-[10px] uppercase font-bold block">Proj. Profit</span>
+                      <span className="font-mono text-xs font-bold text-emerald-700">₹{projProfit.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRecordSale(item)}
+                      className="col-span-2 py-2 px-3 text-xs font-bold rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-200/90 flex items-center justify-center gap-1.5 transition-colors touch-manipulation shadow-xs"
+                    >
+                      <ShoppingCart className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Record Sale</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(item)}
+                      className="w-full py-2.5 px-3 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 flex items-center justify-center gap-1.5 transition-colors touch-manipulation shadow-xs"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenDelete(item)}
+                      className="w-full py-2.5 px-3 text-xs font-semibold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center justify-center gap-1.5 transition-colors touch-manipulation"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table (hidden md:block) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-dark-800 text-slate-400 font-bold border-b border-slate-800 uppercase tracking-wider select-none">
-                <th className="p-4">Product & SKU</th>
-                <th className="p-4 text-right">Cost Price</th>
-                <th className="p-4 text-right">Selling Price</th>
-                <th className="p-4 text-right">Projected Profit</th>
-                <th className="p-4 text-center">Physical Stock</th>
-                <th className="p-4">Stock Status</th>
-                <th className="p-4 text-right">Actions</th>
+              <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px] select-none">
+                <th className="p-3.5 pl-4">Product & SKU</th>
+                <th className="p-3.5 text-right">Cost Price</th>
+                <th className="p-3.5 text-right">Selling Price</th>
+                <th className="p-3.5 text-right">Projected Profit</th>
+                <th className="p-3.5 text-center">Physical Stock</th>
+                <th className="p-3.5">Stock Status</th>
+                <th className="p-3.5 pr-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 bg-dark-900/30">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {error ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-rose-400">
-                    <AlertTriangle className="w-5 h-5 mx-auto mb-2 text-rose-400" />
-                    <span className="font-bold">{error}</span>
+                  <td colSpan="7" className="p-8 text-center text-rose-600">
+                    <AlertTriangle className="w-5 h-5 mx-auto mb-2 text-rose-500" />
+                    <span className="font-semibold">{error}</span>
                   </td>
                 </tr>
               ) : loading ? (
                 <tr>
                   <td colSpan="7" className="p-8 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
                       <span>Loading physical stock from PostgreSQL...</span>
                     </div>
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-slate-500 italic">
+                  <td colSpan="7" className="p-8 text-center text-slate-400 italic">
                     No items found matching the selected filters.
                   </td>
                 </tr>
@@ -299,36 +400,46 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
                   const projProfit = (unitPrice - costPrice) * (item.total_stock || 0);
 
                   return (
-                    <tr key={item.product_id} className="hover:bg-dark-700/30 transition-colors">
-                      <td className="p-4">
-                        <div className="font-bold text-white text-xs">{item.product_name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">{item.sku} • {item.category}</div>
+                    <tr key={item.product_id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="p-3.5 pl-4">
+                        <div className="font-bold text-slate-900 text-xs">{item.product_name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">{item.sku} • {item.category}</div>
                       </td>
-                      <td className="p-4 text-right font-mono text-slate-400">₹{costPrice.toFixed(2)}</td>
-                      <td className="p-4 text-right font-mono font-bold text-white">₹{unitPrice.toFixed(2)}</td>
-                      <td className="p-4 text-right font-mono font-bold text-emerald-400">
+                      <td className="p-3.5 text-right font-mono text-slate-500">₹{costPrice.toFixed(2)}</td>
+                      <td className="p-3.5 text-right font-mono font-bold text-slate-900">₹{unitPrice.toFixed(2)}</td>
+                      <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
                         ₹{projProfit.toFixed(2)}
                       </td>
-                      <td className="p-4 text-center">
-                        <span className="font-bold text-white font-mono text-xs">{item.total_stock}</span>
-                        <span className="text-[10px] text-slate-500 block">min: {item.min_stock_level || 10}</span>
+                      <td className="p-3.5 text-center">
+                        <span className="font-bold text-slate-900 font-mono text-xs">{item.total_stock}</span>
+                        <span className="text-[10px] text-slate-400 block">min: {item.min_stock_level || 10}</span>
                       </td>
-                      <td className="p-4">
+                      <td className="p-3.5">
                         <StatusBadge status={item.stock_status} type="stock" />
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="p-3.5 pr-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
+                            type="button"
+                            onClick={() => handleOpenRecordSale(item)}
+                            title="Record Sale"
+                            className="w-8 h-8 flex items-center justify-center text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 rounded-lg border border-emerald-200/80 transition-colors touch-manipulation shadow-xs"
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5 text-emerald-600" />
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleOpenEdit(item)}
                             title="Edit Product"
-                            className="p-1.5 text-slate-400 hover:text-white bg-dark-700 hover:bg-slate-600 rounded-lg border border-slate-700 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleOpenDelete(item)}
                             title="Delete Product"
-                            className="p-1.5 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg border border-rose-500/20 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -352,7 +463,7 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
       >
         <form onSubmit={handleEditSubmit} className="flex flex-col gap-4 text-xs">
           <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Product Name</label>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Product Name</label>
             <input
               type="text"
               required
@@ -362,9 +473,9 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">SKU Code</label>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">SKU Code</label>
               <input
                 type="text"
                 required
@@ -375,11 +486,11 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category</label>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Category</label>
               <select
                 value={editProd.category_id}
                 onChange={(e) => setEditProd({ ...editProd, category_id: e.target.value })}
-                className="form-input"
+                className="form-input cursor-pointer"
               >
                 {categoriesList.map((c) => (
                   <option key={c.category_id} value={c.category_id}>{c.category_name}</option>
@@ -388,9 +499,9 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Selling Price (₹)</label>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Selling Price (₹)</label>
               <input
                 type="number"
                 step="0.01"
@@ -403,7 +514,7 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reorder Level (Min Stock)</label>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Reorder Level (Min Stock)</label>
               <input
                 type="number"
                 min="0"
@@ -415,18 +526,18 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsEditOpen(false)}
-              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400"
+              className="btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md disabled:opacity-50"
+              className="btn-primary"
             >
               {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
@@ -442,26 +553,26 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
         subtitle="Safely delete or deactivate product from PostgreSQL database."
       >
         <div className="flex flex-col gap-4 text-xs">
-          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
             <div>
-              <div className="font-bold text-white text-sm">
+              <div className="font-bold text-slate-900 text-sm">
                 Delete "{deleteTarget?.product_name}"?
               </div>
-              <p className="text-slate-400 mt-1">
-                SKU: <span className="font-mono text-slate-300 font-bold">{deleteTarget?.sku}</span> | Product ID: #{deleteTarget?.product_id}
+              <p className="text-slate-600 mt-1">
+                SKU: <span className="font-mono text-slate-900 font-semibold">{deleteTarget?.sku}</span> | Product ID: #{deleteTarget?.product_id}
               </p>
-              <p className="text-slate-400 mt-2">
+              <p className="text-slate-500 mt-2">
                 If transaction history exists in sales or purchase orders, this item will be safely deactivated to protect stock consistency.
               </p>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsDeleteOpen(false)}
-              className="px-4 py-2 text-xs font-semibold rounded-xl bg-dark-700 hover:bg-dark-600 text-slate-400"
+              className="btn-secondary"
             >
               Cancel
             </button>
@@ -469,13 +580,21 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
               type="button"
               onClick={handleDeleteConfirm}
               disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-md disabled:opacity-50"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all disabled:opacity-50 touch-manipulation"
             >
               {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
             </button>
           </div>
         </div>
       </Modal>
+
+      {/* --- QUICK RECORD SALE MODAL --- */}
+      <RecordSaleModal
+        isOpen={isRecordSaleOpen}
+        onClose={() => setIsRecordSaleOpen(false)}
+        product={saleTarget}
+        onSaleSuccess={handleSaleSuccess}
+      />
     </div>
   );
 }

@@ -252,14 +252,14 @@ export default function SuppliersView({ onNewPOForSupplier }) {
                     <button
                       onClick={() => handleOpenEdit(s)}
                       title="Edit Supplier"
-                      className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleOpenDelete(s)}
                       title="Delete Supplier"
-                      className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

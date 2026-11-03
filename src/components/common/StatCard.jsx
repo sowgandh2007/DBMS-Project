@@ -50,7 +50,7 @@ export default function StatCard({
   const scheme = colorMap[color] || colorMap.teal;
 
   return (
-    <div className={`premium-card rounded-2xl p-5 flex flex-col justify-between premium-card-hover ${className}`}>
+    <div className={`premium-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between premium-card-hover ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</span>
         {Icon && (
@@ -60,7 +60,7 @@ export default function StatCard({
         )}
       </div>
 
-      <div className="text-2xl font-black text-slate-900 tracking-tight font-mono">{value}</div>
+      <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-mono truncate">{value}</div>
 
       <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 text-xs">
         <span className="text-[11px] text-slate-500 font-medium">{subtitle}</span>

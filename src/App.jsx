@@ -52,7 +52,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-800 antialiased font-sans">
+    <div className="flex flex-col md:flex-row min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 text-slate-800 antialiased font-sans">
       {/* Sidebar Navigation */}
       <Sidebar
         currentView={currentView}
@@ -68,7 +68,7 @@ export default function App() {
       />
 
       {/* Main Workspace Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden">
         {/* Top Header */}
         <Header
           currentView={currentView}
@@ -77,7 +77,7 @@ export default function App() {
         />
 
         {/* Dynamic View Workspace */}
-        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-5 md:p-8 max-w-7xl w-full mx-auto overflow-x-hidden">
           {currentView === 'dashboard' && (
             <DashboardView
               onNavigate={setCurrentView}

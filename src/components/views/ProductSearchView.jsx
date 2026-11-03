@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StatusBadge from '../common/StatusBadge';
 import Modal from '../common/Modal';
+import RecordSaleModal from '../common/RecordSaleModal';
 import { 
   Search, 
   Plus, 
@@ -13,7 +14,8 @@ import {
   X, 
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShoppingCart
 } from 'lucide-react';
 import { 
   searchProducts, 
@@ -49,7 +51,9 @@ export default function ProductSearchView({ onNavigateToLocation }) {
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isRecordSaleOpen, setIsRecordSaleOpen] = useState(false);
+  const [saleTarget, setSaleTarget] = useState(null);
 
   // Active form objects
   const [newProd, setNewProd] = useState({
@@ -196,6 +200,17 @@ export default function ProductSearchView({ onNavigateToLocation }) {
     }
   };
 
+  // Quick Record Sale
+  const handleOpenRecordSale = (p) => {
+    setSaleTarget(p);
+    setIsRecordSaleOpen(true);
+  };
+
+  const handleSaleSuccess = ({ product, quantity, totalRevenue, realizedProfit }) => {
+    notify(`Sale of ${quantity}x ${product.product_name} recorded! Total: ₹${totalRevenue.toFixed(2)} | Realized Profit: +₹${realizedProfit.toFixed(2)}`);
+    loadProducts();
+  };
+
   // Delete Product
   const handleOpenDelete = (p) => {
     setDeleteTarget(p);
@@ -259,7 +274,7 @@ export default function ProductSearchView({ onNavigateToLocation }) {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="premium-card rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch justify-between">
+      <div className="premium-card rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row gap-2.5 sm:gap-3 items-stretch justify-between">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -272,12 +287,12 @@ export default function ProductSearchView({ onNavigateToLocation }) {
           />
         </div>
 
-        {/* Dropdowns */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Dropdowns - Responsive 2-column on mobile, flex on desktop */}
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="form-input text-xs w-auto cursor-pointer"
+            className="form-input text-xs w-full sm:w-auto cursor-pointer"
           >
             <option value="all">All Categories</option>
             {categoriesList.map((c) => (
@@ -290,7 +305,7 @@ export default function ProductSearchView({ onNavigateToLocation }) {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="form-input text-xs w-auto cursor-pointer"
+            className="form-input text-xs w-full sm:w-auto cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="IN_STOCK">In Stock</option>
@@ -301,7 +316,7 @@ export default function ProductSearchView({ onNavigateToLocation }) {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="form-input text-xs w-auto cursor-pointer"
+            className="form-input text-xs col-span-2 sm:w-auto cursor-pointer"
           >
             <option value="newest">Newest First</option>
             <option value="name-asc">Name (A-Z)</option>
@@ -311,37 +326,121 @@ export default function ProductSearchView({ onNavigateToLocation }) {
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="premium-card rounded-2xl overflow-hidden">
-        <div className="p-3.5 px-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-            <Package className="w-4 h-4 text-teal-600" />
-            Catalog Listings ({products.length})
+      {/* Products Display (Mobile Cards + Desktop Table) */}
+      <div className="premium-card rounded-2xl overflow-hidden w-full max-w-full">
+        <div className="p-3 sm:p-3.5 px-3.5 sm:px-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 truncate">
+            <Package className="w-4 h-4 text-teal-600 shrink-0" />
+            <span>Catalog ({products.length})</span>
           </span>
           {totalPages > 1 && (
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span>Page {currentPage} of {totalPages}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-500 shrink-0">
+              <span className="text-[11px] sm:text-xs">Page {currentPage}/{totalPages}</span>
               <div className="flex items-center gap-1">
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  className="p-1 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 touch-manipulation"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  className="p-1 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 touch-manipulation"
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Card View (block md:hidden) - Zero horizontal overflow, touch-first */}
+        <div className="block md:hidden divide-y divide-slate-100 bg-white">
+          {error ? (
+            <div className="p-6 text-center text-rose-600">
+              <AlertTriangle className="w-5 h-5 mx-auto mb-2 text-rose-500" />
+              <span className="font-semibold text-xs">{error}</span>
+            </div>
+          ) : loading ? (
+            <div className="p-8 text-center text-slate-400 flex items-center justify-center gap-2 text-xs">
+              <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+              <span>Loading products...</span>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 italic text-xs">
+              No products matched your search or filters.
+            </div>
+          ) : (
+            paginatedProducts.map((p) => (
+              <div key={p.product_id} className="p-3.5 flex flex-col gap-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-slate-900 text-sm truncate">{p.product_name}</h4>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded font-semibold">{p.sku}</span>
+                      <span className="text-[10px] text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{p.category}</span>
+                    </div>
+                  </div>
+                  <div className="shrink-0">
+                    <StatusBadge status={p.stock_status} type="stock" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 py-2 px-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                  <div>
+                    <span className="text-slate-400 text-[10px] uppercase font-bold block">Price</span>
+                    <span className="font-mono font-bold text-slate-900 text-xs sm:text-sm">₹{p.unit_price.toFixed(2)}</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-slate-400 text-[10px] uppercase font-bold block">Stock</span>
+                    <span className="font-bold text-slate-800 text-xs">{p.total_stock} <span className="text-[10px] text-slate-400 font-normal">units</span></span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-400 text-[10px] uppercase font-bold block">Location</span>
+                    <span className="font-mono text-[10px] font-semibold text-sky-700 bg-sky-100/70 px-1.5 py-0.5 rounded border border-sky-200 inline-block truncate max-w-full">
+                      {p.rack_code ? `${p.rack_code}-${p.shelf_number || 'S1'}` : 'Unassigned'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Mobile Action Buttons - Large, accessible touch targets */}
+                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                  {p.total_stock > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRecordSale(p)}
+                      className="col-span-2 py-2.5 px-3 text-xs font-bold rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-200/90 flex items-center justify-center gap-1.5 transition-colors touch-manipulation shadow-xs"
+                    >
+                      <ShoppingCart className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Record Sale</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(p)}
+                    className="w-full py-2.5 px-3 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center gap-1.5 transition-colors touch-manipulation shadow-xs"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDelete(p)}
+                    className="w-full py-2.5 px-3 text-xs font-semibold rounded-xl bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-700 border border-rose-200 flex items-center justify-center gap-1.5 transition-colors touch-manipulation"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View (hidden md:block) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase text-[11px] tracking-wider select-none">
@@ -405,17 +504,29 @@ export default function ProductSearchView({ onNavigateToLocation }) {
                     </td>
                     <td className="p-3.5 pr-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {p.total_stock > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenRecordSale(p)}
+                            title="Record Sale"
+                            className="w-8 h-8 flex items-center justify-center text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 rounded-lg border border-emerald-200/80 transition-colors touch-manipulation shadow-xs"
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5 text-emerald-600" />
+                          </button>
+                        )}
                         <button
+                          type="button"
                           onClick={() => handleOpenEdit(p)}
                           title="Edit Product"
-                          className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition-colors"
+                          className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleOpenDelete(p)}
                           title="Delete Product"
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors"
+                          className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors touch-manipulation"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -449,7 +560,7 @@ export default function ProductSearchView({ onNavigateToLocation }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">SKU Code</label>
               <input
@@ -476,7 +587,7 @@ export default function ProductSearchView({ onNavigateToLocation }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Selling Price (₹)</label>
               <input
@@ -542,7 +653,7 @@ export default function ProductSearchView({ onNavigateToLocation }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">SKU Code</label>
               <input
@@ -568,7 +679,7 @@ export default function ProductSearchView({ onNavigateToLocation }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Selling Price (₹)</label>
               <input
@@ -629,8 +740,8 @@ export default function ProductSearchView({ onNavigateToLocation }) {
 
       {/* --- DELETE CONFIRMATION MODAL --- */}
       <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
         title="Confirm Product Deletion"
         subtitle="Safely manage product removal."
       >
@@ -662,13 +773,21 @@ export default function ProductSearchView({ onNavigateToLocation }) {
               type="button"
               onClick={handleDeleteConfirm}
               disabled={isSubmitting}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all disabled:opacity-50"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all disabled:opacity-50 touch-manipulation"
             >
               {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
             </button>
           </div>
         </div>
       </Modal>
+
+      {/* --- QUICK RECORD SALE MODAL --- */}
+      <RecordSaleModal
+        isOpen={isRecordSaleOpen}
+        onClose={() => setIsRecordSaleOpen(false)}
+        product={saleTarget}
+        onSaleSuccess={handleSaleSuccess}
+      />
     </div>
   );
 }
