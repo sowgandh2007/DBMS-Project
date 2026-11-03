@@ -625,19 +625,23 @@ def create_sale_transaction(employee_id: int, customer_name: str, items: list):
     Inserts into sales_order and sales_item.
     """
     with get_db_cursor(commit=True) as cursor:
-        # 1. Insert order header
+        # 1. Determine next sale_id safely (table has no auto-increment sequence)
+        cursor.execute("SELECT COALESCE(MAX(sale_id), 300) + 1 AS next_id FROM sales_order;")
+        row = cursor.fetchone()
+        sale_id = row['next_id'] if row else 301
+
+        # 2. Insert order header
         cursor.execute(
             """
-            INSERT INTO sales_order (employee_id, sale_date)
-            VALUES (%s, CURRENT_DATE)
+            INSERT INTO sales_order (sale_id, employee_id, sale_date)
+            VALUES (%s, %s, CURRENT_DATE)
             RETURNING sale_id, employee_id, sale_date;
             """,
-            (employee_id,)
+            (sale_id, employee_id)
         )
         sale_order = cursor.fetchone()
-        sale_id = sale_order['sale_id']
         
-        # 2. Insert line items
+        # 3. Insert line items
         for item in items:
             cursor.execute(
                 """
