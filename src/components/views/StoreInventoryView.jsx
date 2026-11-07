@@ -166,9 +166,9 @@ export default function StoreInventoryView({ onOpenInspector, onAddProduct }) {
     if (!deleteTarget) return;
     setIsSubmitting(true);
     try {
-      await deleteProduct(deleteTarget.product_id, false);
+      await deleteProduct(deleteTarget.product_id);
       setIsDeleteOpen(false);
-      notify(`Product "${deleteTarget.product_name}" deleted/deactivated successfully.`);
+      notify(`Product "${deleteTarget.product_name}" completely removed from database.`);
       setDeleteTarget(null);
       loadInventory();
     } catch (err) {

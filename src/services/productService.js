@@ -37,8 +37,8 @@ export async function searchProducts(filters = {}) {
       let liveData = response.data.map(p => {
         const qty = Number(p.current_stock ?? p.stock_quantity ?? 0);
         const isLow = Boolean(p.low_stock);
-        const unitPrice = Number(p.unit_price ?? 100);
-        const costPrice = Number(p.cost_price ?? (unitPrice * 0.7));
+        const unitPrice = p.unit_price !== undefined && p.unit_price !== null ? Number(p.unit_price) : 0;
+        const costPrice = p.cost_price !== undefined && p.cost_price !== null ? Number(p.cost_price) : Number((unitPrice * 0.7).toFixed(2));
 
         let stockStatus = 'IN_STOCK';
         if (qty <= 0) stockStatus = 'OUT_OF_STOCK';
@@ -167,7 +167,7 @@ export async function updateProduct(productId, productData) {
 /**
  * Delete or deactivate a product.
  */
-export async function deleteProduct(productId, hardDelete = false) {
+export async function deleteProduct(productId, hardDelete = true) {
   if (!getUseMockData()) {
     return await apiRequest(`/products/${productId}?hard=${hardDelete}`, {
       method: 'DELETE'

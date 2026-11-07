@@ -151,14 +151,15 @@ def edit_product(product_id):
 def remove_product(product_id):
     """
     DELETE /api/products/<id>
-    Deactivate or remove a product from Supabase PostgreSQL database.
+    Completely remove a product from Supabase PostgreSQL database.
     Query Parameters:
-      hard (bool): If true, attempts permanent delete if no historic orders reference it.
+      hard (bool): If false, deactivates product. Defaults to true for complete deletion.
     """
     try:
-        hard_delete = request.args.get('hard', 'false').lower() in ('true', '1')
+        hard_param = request.args.get('hard', 'true').lower()
+        hard_delete = hard_param in ('true', '1', 'yes')
         deleted = delete_product(product_id, hard_delete=hard_delete)
-        action_desc = "permanently deleted" if deleted.get('action') == 'hard_deleted' else "deactivated"
+        action_desc = "completely removed from database" if deleted.get('action') == 'deleted' else "deactivated"
         return jsonify({
             'success': True,
             'message': f"Product #{product_id} successfully {action_desc}.",

@@ -42,20 +42,47 @@ class TestProductCRUD:
         # Reset back
         client.put('/api/products/101', json={'product_name': 'Wireless Mouse', 'unit_price': 495.00, 'reorder_level': 10})
 
-    def test_product_soft_delete(self, client):
-        # Soft-delete product
-        res = client.delete('/api/products/106')
-        assert res.status_code == 200
-        assert res.get_json()['success'] is True
+    def test_product_complete_delete_and_lifecycle(self, client):
+        # 1. Create a product with custom selling price
+        create_res = client.post('/api/products', json={
+            'product_name': 'Test Mechanical Numpad',
+            'sku': 'TEST-NUM-999',
+            'unit_price': 750.00,
+            'category_id': 1
+        })
+        assert create_res.status_code == 201
+        new_prod = create_res.get_json()['data']
+        prod_id = new_prod['product_id']
+        assert float(new_prod['unit_price']) == 750.00
 
-        # Check that it's inactive or reactivate
-        client.put('/api/products/106', json={'is_active': True})
+        # 2. Verify search returns the exact selling price (750.00)
+        search_res = client.get(f'/api/products?search=TEST-NUM-999')
+        assert search_res.status_code == 200
+        found = search_res.get_json()['data']
+        assert len(found) >= 1
+        assert float(found[0]['unit_price']) == 750.00
 
-    def test_product_hard_delete_blocked_when_orders_exist(self, client):
-        # Product 101 has sales/purchase items -> hard delete must be blocked with 409
-        res = client.delete('/api/products/101?hard=true')
-        assert res.status_code == 409
-        assert 'referenced' in res.get_json()['message'].lower()
+        # 3. Completely delete product from database
+        del_res = client.delete(f'/api/products/{prod_id}')
+        assert del_res.status_code == 200
+        assert del_res.get_json()['success'] is True
+
+        # 4. Verify product is completely removed from database (no lingering row)
+        verify_res = client.get(f'/api/products?search=TEST-NUM-999')
+        assert len(verify_res.get_json()['data']) == 0
+
+        # 5. Re-entering a product with the same SKU now succeeds with no constraint conflict!
+        recreate_res = client.post('/api/products', json={
+            'product_name': 'Test Mechanical Numpad Reborn',
+            'sku': 'TEST-NUM-999',
+            'unit_price': 800.00,
+            'category_id': 1
+        })
+        assert recreate_res.status_code == 201
+        recreated_id = recreate_res.get_json()['data']['product_id']
+
+        # Clean up
+        client.delete(f'/api/products/{recreated_id}')
 
 class TestCategoryCRUD:
     def test_category_lifecycle_and_foreign_key_guard(self, client):

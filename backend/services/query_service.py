@@ -799,45 +799,40 @@ def update_product(product_id: int, product_data: dict):
         updated = cursor.fetchone()
         return serialize_rows([updated])[0]
 
-def delete_product(product_id: int, hard_delete: bool = False):
+def delete_product(product_id: int, hard_delete: bool = True):
     """
-    Deactivates or deletes a product from the database.
-    Checks for sales or purchase order dependencies to ensure transaction consistency.
+    Completely removes a product and its dependent records from the database.
+    Executes within an atomic transaction:
+    1. Removes supplier mapping from product_supplier
+    2. Removes sales lines from sales_item
+    3. Removes purchase lines from purchase_item
+    4. Deletes the product from product table
     """
     with get_db_cursor(commit=True) as cursor:
-        cursor.execute("SELECT product_id, product_name, is_active FROM product WHERE product_id = %s;", (product_id,))
+        cursor.execute("SELECT product_id, product_name, sku, is_active FROM product WHERE product_id = %s;", (product_id,))
         prod = cursor.fetchone()
         if not prod:
             raise ValueError(f"Product with ID {product_id} not found.")
 
-        # Check transaction history in sales_item and purchase_item
-        cursor.execute("SELECT COUNT(*)::INT AS cnt FROM sales_item WHERE product_id = %s;", (product_id,))
-        sales_cnt = cursor.fetchone()['cnt']
-        cursor.execute("SELECT COUNT(*)::INT AS cnt FROM purchase_item WHERE product_id = %s;", (product_id,))
-        po_cnt = cursor.fetchone()['cnt']
-        
-        has_history = (sales_cnt > 0 or po_cnt > 0)
-        
-        if hard_delete and has_history:
-            # Cannot hard delete due to foreign key references & transaction consistency
-            raise PermissionError(
-                f"Cannot permanently delete '{prod['product_name']}': it is referenced in {sales_cnt} sales line(s) and {po_cnt} purchase line(s). "
-                "The product has been deactivated instead to preserve inventory and transaction history."
-            )
-
-        if hard_delete and not has_history:
-            # Clean up supplier link if any, then delete
-            cursor.execute("DELETE FROM product_supplier WHERE product_id = %s;", (product_id,))
-            cursor.execute("DELETE FROM product WHERE product_id = %s RETURNING product_id, product_name;", (product_id,))
-            deleted = cursor.fetchone()
-            deleted['action'] = 'hard_deleted'
-            return serialize_rows([deleted])[0]
-        else:
-            # Soft delete / deactivation
+        # If explicitly soft delete requested
+        if hard_delete is False:
             cursor.execute("UPDATE product SET is_active = FALSE WHERE product_id = %s RETURNING product_id, product_name, is_active;", (product_id,))
             deleted = cursor.fetchone()
             deleted['action'] = 'deactivated'
             return serialize_rows([deleted])[0]
+
+        # 1. Clean up supplier link in product_supplier
+        cursor.execute("DELETE FROM product_supplier WHERE product_id = %s;", (product_id,))
+
+        # 2. Clean up sales_item and purchase_item dependent records
+        cursor.execute("DELETE FROM sales_item WHERE product_id = %s;", (product_id,))
+        cursor.execute("DELETE FROM purchase_item WHERE product_id = %s;", (product_id,))
+
+        # 3. Delete the product completely from the product table
+        cursor.execute("DELETE FROM product WHERE product_id = %s RETURNING product_id, product_name, sku;", (product_id,))
+        deleted = cursor.fetchone()
+        deleted['action'] = 'deleted'
+        return serialize_rows([deleted])[0]
 
 def create_purchase_order(po_data: dict):
     """

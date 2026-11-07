@@ -8,6 +8,12 @@ SELECT
     pl.sku,
     pl.name AS product_name,
     c.name AS category_name,
+    p.unit_price,
+    COALESCE(
+        (SELECT psup.supply_price FROM product_supplier psup WHERE psup.product_id = p.product_id ORDER BY psup.supply_price ASC LIMIT 1),
+        (SELECT pi.unit_cost FROM purchase_item pi WHERE pi.product_id = p.product_id ORDER BY pi.po_id DESC LIMIT 1),
+        ROUND(p.unit_price * 0.70, 2)
+    ) AS cost_price,
     pl.rack_code,
     pl.aisle,
     pl.shelf_number,

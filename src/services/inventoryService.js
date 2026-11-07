@@ -27,6 +27,9 @@ export async function getInventory(filters = {}) {
         if (qty <= 0) stockStatus = 'OUT_OF_STOCK';
         else if (isLow) stockStatus = 'LOW_STOCK';
 
+        const unitPrice = p.unit_price !== undefined && p.unit_price !== null ? Number(p.unit_price) : 0;
+        const costPrice = p.cost_price !== undefined && p.cost_price !== null ? Number(p.cost_price) : Number((unitPrice * 0.7).toFixed(2));
+
         return {
           product_id: p.product_id,
           sku: p.sku,
@@ -38,8 +41,8 @@ export async function getInventory(filters = {}) {
           stock_quantity: qty,
           current_stock: qty,
           total_stock: qty,
-          unit_price: Number(p.unit_price || 120),
-          cost_price: Number(p.cost_price || 85),
+          unit_price: unitPrice,
+          cost_price: costPrice,
           low_stock: isLow,
           stock_status: stockStatus,
           stock_deficit: Math.max(0, 15 - qty),

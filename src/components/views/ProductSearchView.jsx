@@ -221,9 +221,9 @@ export default function ProductSearchView({ onNavigateToLocation }) {
     if (!deleteTarget) return;
     setIsSubmitting(true);
     try {
-      await deleteProduct(deleteTarget.product_id, false);
+      await deleteProduct(deleteTarget.product_id);
       setIsDeleteOpen(false);
-      notify(`Product "${deleteTarget.product_name}" removed/deactivated successfully.`);
+      notify(`Product "${deleteTarget.product_name}" completely removed from database.`);
       setDeleteTarget(null);
       loadProducts();
     } catch (err) {

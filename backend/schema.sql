@@ -178,6 +178,7 @@ CREATE VIEW product_location AS
 SELECT ps.product_id,
        ps.sku,
        ps.name,
+       ps.unit_price,
        r.rack_code,
        r.aisle,
        sh.shelf_number,
