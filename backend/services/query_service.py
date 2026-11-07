@@ -18,23 +18,26 @@ from db import get_db_cursor, serialize_rows
 
 logger = logging.getLogger(__name__)
 
-# Query file cache
+# Query file cache: maps filename -> (mtime, content)
 _QUERY_CACHE = {}
 
 def load_query_file(filename: str) -> str:
     """
     Read an SQL query file from backend/queries/.
-    Caches content in memory to avoid repeated disk reads.
+    Caches content in memory and automatically reloads if the query file changes on disk.
     """
-    if filename in _QUERY_CACHE:
-        return _QUERY_CACHE[filename]
-    
     file_path = Config.QUERIES_DIR / filename
     if not file_path.exists():
         raise FileNotFoundError(f"Query file '{filename}' was not found in {Config.QUERIES_DIR}")
     
+    mtime = file_path.stat().st_mtime
+    if filename in _QUERY_CACHE:
+        cached_mtime, cached_content = _QUERY_CACHE[filename]
+        if cached_mtime == mtime:
+            return cached_content
+
     content = file_path.read_text(encoding='utf-8')
-    _QUERY_CACHE[filename] = content
+    _QUERY_CACHE[filename] = (mtime, content)
     return content
 
 def adapt_postgresql_placeholders(sql: str, params: list) -> tuple:
